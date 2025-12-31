@@ -15,7 +15,8 @@ rustywallet/
 │   ├── rustywallet-hd/         # ✔️ Done
 │   └── rustywallet-signer/     # ✔️ Done
 ├── rustywallet/                # ✔️ Done
-└── rustywallet-cli/            # ✔️ Done
+├── rustywallet-cli/            # ✔️ Done
+└── rustywallet-checker/        # ✔️ Done
 ```
 
 ## Crates Detail
@@ -127,6 +128,25 @@ rustywallet hd --mnemonic "..."
 rustywallet sign --key <hex> --message "hello"
 rustywallet verify --address <addr> --message "hello" --signature <sig>
 ```
+
+---
+
+### 8. rustywallet-checker ✔️ (Done)
+Balance checker for Bitcoin and Ethereum
+
+```rust
+use rustywallet_checker::prelude::*;
+
+// Check Bitcoin balance
+let btc = check_btc_balance("1A1zP1...").await?;
+println!("BTC: {} satoshis", btc.balance);
+
+// Check Ethereum balance
+let eth = check_eth_balance("0x...").await?;
+println!("ETH: {} ETH", eth.balance_eth);
+```
+
+**Spec:** `.kiro/specs/rustywallet-checker/`
 
 ---
 

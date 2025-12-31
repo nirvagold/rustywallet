@@ -1,0 +1,17 @@
+[package]
+name = "rustywallet-checker"
+version = "0.1.0"
+edition = "2021"
+description = "Cryptocurrency balance checker for Bitcoin and Ethereum"
+license = "MIT"
+repository = "https://github.com/pfrfrfr/rustywallet"
+keywords = ["cryptocurrency", "bitcoin", "ethereum", "balance", "blockchain"]
+categories = ["cryptography", "api-bindings"]
+readme = "README.md"
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
