@@ -13,8 +13,8 @@ rustywallet/
 │   ├── rustywallet-address/    # ✔️ Done
 │   ├── rustywallet-mnemonic/   # ✔️ Done
 │   ├── rustywallet-hd/         # ✔️ Done
-│   └── rustywallet-signer/     # ✅ In Progress
-├── rustywallet/                # 📋 Umbrella crate
+│   └── rustywallet-signer/     # ✔️ Done
+├── rustywallet/                # ✅ In Progress
 └── rustywallet-cli/            # 📋 CLI Tool
 ```
 
@@ -82,7 +82,7 @@ HD Wallet (BIP32/BIP44)
 
 ---
 
-### 5. rustywallet-signer ✅ (Current)
+### 5. rustywallet-signer ✔️ (Done)
 Message & Transaction Signing
 
 **Features:**
@@ -94,9 +94,11 @@ Message & Transaction Signing
 
 **Dependencies:** rustywallet-keys
 
+**Spec:** `.kiro/specs/rustywallet-signer/`
+
 ---
 
-### 6. rustywallet (Umbrella) 📋
+### 6. rustywallet (Umbrella) ✅ (Current)
 Re-export semua crates dengan unified API
 
 ```rust

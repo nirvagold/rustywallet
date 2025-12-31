@@ -9,6 +9,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "base64"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+
+[[package]]
 name = "bech32"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -443,6 +449,31 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "zeroize",
+]
+
+[[package]]
+name = "rustywallet-signer"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "bs58",
+ "hex",
+ "proptest",
+ "ripemd",
+ "rustywallet-keys",
+ "secp256k1",
+ "sha2",
+ "thiserror 1.0.69",
+ "tiny-keccak",
+]
+
+[[package]]
+name = "rustywallet-signer-demo"
+version = "0.1.0"
+dependencies = [
+ "rustywallet-keys",
+ "rustywallet-signer",
+ "sha2",
 ]
 
 [[package]]
