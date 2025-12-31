@@ -1,0 +1,30 @@
+[package]
+name = "rustywallet"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Cryptocurrency wallet utilities for Rust - keys, addresses, mnemonics, HD wallets, and signing"
+keywords = ["crypto", "wallet", "bitcoin", "ethereum", "blockchain"]
+categories = ["cryptography", "authentication"]
+readme = "README.md"
+
+[features]
+default = ["full"]
+full = ["keys", "address", "mnemonic", "hd", "signer"]
+keys = ["dep:rustywallet-keys"]
+address = ["dep:rustywallet-address", "keys"]
+mnemonic = ["dep:rustywallet-mnemonic"]
+hd = ["dep:rustywallet-hd", "keys"]
+signer = ["dep:rustywallet-signer", "keys"]
+
+[dependencies]
+rustywallet-keys = { path = "../rustywallet-keys", version = "0.1", optional = true }
+rustywallet-address = { path = "../rustywallet-address", version = "0.1", optional = true }
+rustywallet-mnemonic = { path = "../rustywallet-mnemonic", version = "0.1", optional = true }
+rustywallet-hd = { path = "../rustywallet-hd", version = "0.1", optional = true }
+rustywallet-signer = { path = "../rustywallet-signer", version = "0.1", optional = true }
+
+[dev-dependencies]
+sha2 = "0.10"

@@ -392,6 +392,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet"
+version = "0.1.0"
+dependencies = [
+ "rustywallet-address",
+ "rustywallet-hd",
+ "rustywallet-keys",
+ "rustywallet-mnemonic",
+ "rustywallet-signer",
+ "sha2",
+]
+
+[[package]]
 name = "rustywallet-address"
 version = "0.1.1"
 dependencies = [
@@ -404,6 +416,14 @@ dependencies = [
  "sha2",
  "thiserror 1.0.69",
  "tiny-keccak",
+]
+
+[[package]]
+name = "rustywallet-demo"
+version = "0.1.0"
+dependencies = [
+ "rustywallet",
+ "sha2",
 ]
 
 [[package]]
@@ -465,15 +485,6 @@ dependencies = [
  "sha2",
  "thiserror 1.0.69",
  "tiny-keccak",
-]
-
-[[package]]
-name = "rustywallet-signer-demo"
-version = "0.1.0"
-dependencies = [
- "rustywallet-keys",
- "rustywallet-signer",
- "sha2",
 ]
 
 [[package]]

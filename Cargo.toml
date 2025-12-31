@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "examples/rustywallet-signer-demo"]
+members = ["crates/*"]
 
 [workspace.package]
 version = "0.1.1"

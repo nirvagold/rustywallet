@@ -14,8 +14,8 @@ rustywallet/
 │   ├── rustywallet-mnemonic/   # ✔️ Done
 │   ├── rustywallet-hd/         # ✔️ Done
 │   └── rustywallet-signer/     # ✔️ Done
-├── rustywallet/                # ✅ In Progress
-└── rustywallet-cli/            # 📋 CLI Tool
+├── rustywallet/                # ✔️ Done
+└── rustywallet-cli/            # ✅ In Progress
 ```
 
 ## Crates Detail
@@ -98,20 +98,21 @@ Message & Transaction Signing
 
 ---
 
-### 6. rustywallet (Umbrella) ✅ (Current)
+### 6. rustywallet (Umbrella) ✔️ (Done)
 Re-export semua crates dengan unified API
 
 ```rust
 use rustywallet::prelude::*;
 
 let key = PrivateKey::random();
-let address = key.to_address(Chain::Bitcoin)?;
-let mnemonic = Mnemonic::generate(12)?;
+let mnemonic = Mnemonic::generate(WordCount::Words12);
 ```
+
+**Spec:** `.kiro/specs/rustywallet/`
 
 ---
 
-### 7. rustywallet-cli 📋
+### 7. rustywallet-cli ✅ (Current)
 Command-line tool
 
 ```bash
