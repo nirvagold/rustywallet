@@ -50,6 +50,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4"
 dependencies = [
+ "sha2",
  "tinyvec",
 ]
 
@@ -397,6 +398,23 @@ dependencies = [
  "sha2",
  "thiserror 1.0.69",
  "tiny-keccak",
+]
+
+[[package]]
+name = "rustywallet-hd"
+version = "0.1.0"
+dependencies = [
+ "bs58",
+ "hex",
+ "hmac",
+ "proptest",
+ "ripemd",
+ "rustywallet-keys",
+ "rustywallet-mnemonic",
+ "secp256k1",
+ "sha2",
+ "thiserror 2.0.17",
+ "zeroize",
 ]
 
 [[package]]

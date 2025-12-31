@@ -12,8 +12,8 @@ rustywallet/
 │   ├── rustywallet-keys/       # ✔️ Done
 │   ├── rustywallet-address/    # ✔️ Done
 │   ├── rustywallet-mnemonic/   # ✔️ Done
-│   ├── rustywallet-hd/         # ✅ In Progress
-│   └── rustywallet-signer/     # 📋 Planned
+│   ├── rustywallet-hd/         # ✔️ Done
+│   └── rustywallet-signer/     # ✅ In Progress
 ├── rustywallet/                # 📋 Umbrella crate
 └── rustywallet-cli/            # 📋 CLI Tool
 ```
@@ -66,7 +66,7 @@ BIP39 Mnemonic / Seed Phrase
 
 ---
 
-### 4. rustywallet-hd ✅ (Current)
+### 4. rustywallet-hd ✔️ (Done)
 HD Wallet (BIP32/BIP44)
 
 **Features:**
@@ -76,11 +76,13 @@ HD Wallet (BIP32/BIP44)
 - Extended keys (xpub, xprv)
 - Account/address discovery
 
-**Dependencies:** rustywallet-keys, rustywallet-mnemonic
+**Dependencies:** rustywallet-keys
+
+**Spec:** `.kiro/specs/rustywallet-hd/`
 
 ---
 
-### 5. rustywallet-signer 📋
+### 5. rustywallet-signer ✅ (Current)
 Message & Transaction Signing
 
 **Features:**
