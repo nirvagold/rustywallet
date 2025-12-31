@@ -1,0 +1,25 @@
+[package]
+name = "rustywallet-mnemonic"
+version = "0.1.0"
+edition = "2021"
+authors = ["RustyWallet Contributors"]
+description = "BIP39 mnemonic (seed phrase) generation and management for cryptocurrency wallets"
+license = "MIT"
+repository = "https://github.com/wfrfrfwrf/rustywallet"
+documentation = "https://docs.rs/rustywallet-mnemonic"
+readme = "README.md"
+keywords = ["bitcoin", "ethereum", "mnemonic", "bip39", "cryptocurrency"]
+categories = ["cryptography", "authentication"]
+
+[dependencies]
+rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
+sha2 = "0.10"
+pbkdf2 = "0.12"
+hmac = "0.12"
+rand = "0.8"
+zeroize = { version = "1.8", features = ["derive"] }
+thiserror = "2.0"
+
+[dev-dependencies]
+proptest = "1.4"
+hex = "0.4"

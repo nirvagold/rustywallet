@@ -11,8 +11,8 @@ rustywallet/
 ├── crates/
 │   ├── rustywallet-keys/       # ✔️ Done
 │   ├── rustywallet-address/    # ✔️ Done
-│   ├── rustywallet-mnemonic/   # ✅ In Progress
-│   ├── rustywallet-hd/         # 📋 Planned
+│   ├── rustywallet-mnemonic/   # ✔️ Done
+│   ├── rustywallet-hd/         # ✅ In Progress
 │   └── rustywallet-signer/     # 📋 Planned
 ├── rustywallet/                # 📋 Umbrella crate
 └── rustywallet-cli/            # 📋 CLI Tool
@@ -52,7 +52,7 @@ Address generation untuk berbagai blockchain
 
 ---
 
-### 3. rustywallet-mnemonic ✅ (Current)
+### 3. rustywallet-mnemonic ✔️ (Done)
 BIP39 Mnemonic / Seed Phrase
 
 **Features:**
@@ -62,11 +62,11 @@ BIP39 Mnemonic / Seed Phrase
 - Multi-language wordlists (EN, ID, etc.)
 - Passphrase support
 
-**Dependencies:** rustywallet-keys
+**Spec:** `.kiro/specs/rustywallet-mnemonic/`
 
 ---
 
-### 4. rustywallet-hd 📋
+### 4. rustywallet-hd ✅ (Current)
 HD Wallet (BIP32/BIP44)
 
 **Features:**
