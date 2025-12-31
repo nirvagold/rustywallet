@@ -4,36 +4,21 @@ inclusion: always
 
 # rustywallet Development Guidelines
 
-## 🎯 Single Source of Truth
+## 🎯 Patokan Utama: ROADMAP.md
 
-**ROADMAP.md adalah patokan utama project ini.**
+**SELALU baca `#[[file:ROADMAP.md]]` sebelum mulai kerja.**
 
-Selalu baca `#[[file:ROADMAP.md]]` untuk mengetahui:
-- Status setiap crate (✅ In Progress, 🔜 Next, 📋 Planned, ✔️ Done)
-- Urutan pengembangan
+ROADMAP.md adalah single source of truth untuk:
+- Status setiap crate
+- Urutan pengembangan  
 - Fitur yang harus diimplementasi
 
-## 📋 Progress Tracking
-
-**WAJIB update ROADMAP.md setiap kali:**
-1. Memulai crate baru → ubah status ke `✅ In Progress`
-2. Menyelesaikan crate → ubah status ke `✔️ Done`
-3. Menambah/mengubah fitur → update di section crate terkait
-
-**Format status:**
-- `✔️ Done` - Selesai dan published
-- `✅ In Progress` - Sedang dikerjakan
-- `🔜 Next` - Akan dikerjakan setelah current selesai
-- `📋 Planned` - Sudah direncanakan, belum dimulai
-
-## 📁 Spec Files
+## � Spec eFiles
 
 Setiap crate yang sedang dikerjakan harus punya spec di `.kiro/specs/<crate-name>/`:
 - `requirements.md` - User stories dan acceptance criteria
 - `design.md` - Architecture dan correctness properties
 - `tasks.md` - Implementation checklist
-
-**Current spec:** `.kiro/specs/rustywallet-keys/`
 
 ## Coding Standards
 

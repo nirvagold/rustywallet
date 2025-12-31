@@ -20,5 +20,5 @@
 .DS_Store
 Thumbs.db
 
-# Kiro specs (optional - remove if you want to track specs)
-# .kiro/
+# Kiro
+.kiro/

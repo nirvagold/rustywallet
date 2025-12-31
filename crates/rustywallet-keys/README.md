@@ -112,4 +112,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Part of rustywallet
 
-This crate is part of the [rustywallet](https://github.com/pfrfrfr/rustywallet) ecosystem.
+This crate is part of the [rustywallet](https://github.com/nirvagold/rustywallet) ecosystem.

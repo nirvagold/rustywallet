@@ -1,0 +1,23 @@
+[package]
+name = "rustywallet-address"
+description = "Cryptocurrency address generation and validation for Bitcoin and Ethereum"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+keywords = ["bitcoin", "ethereum", "address", "cryptocurrency", "wallet"]
+categories = ["cryptography", "encoding"]
+
+[dependencies]
+rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
+sha2 = { workspace = true }
+ripemd = "0.1"
+bech32 = "0.11"
+bs58 = { workspace = true }
+tiny-keccak = { version = "2.0", features = ["keccak"] }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+hex = "0.4"

@@ -3,11 +3,11 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/user/rustywallet"
-authors = ["Your Name <your@email.com>"]
+repository = "https://github.com/nirvagold/rustywallet"
+authors = ["nirvagold <nirvagold@gmail.com>"]
 
 [workspace.dependencies]
 # Crypto

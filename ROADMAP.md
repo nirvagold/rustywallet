@@ -10,8 +10,8 @@
 rustywallet/
 ├── crates/
 │   ├── rustywallet-keys/       # ✔️ Done
-│   ├── rustywallet-address/    # ✅ In Progress
-│   ├── rustywallet-mnemonic/   # 📋 Planned
+│   ├── rustywallet-address/    # ✔️ Done
+│   ├── rustywallet-mnemonic/   # ✅ In Progress
 │   ├── rustywallet-hd/         # 📋 Planned
 │   └── rustywallet-signer/     # 📋 Planned
 ├── rustywallet/                # 📋 Umbrella crate
@@ -36,7 +36,7 @@ Private & Public Key management
 
 ---
 
-### 2. rustywallet-address ✅ (Current)
+### 2. rustywallet-address ✔️ (Done)
 Address generation untuk berbagai blockchain
 
 **Features:**
@@ -48,9 +48,11 @@ Address generation untuk berbagai blockchain
 
 **Dependencies:** rustywallet-keys
 
+**Spec:** `.kiro/specs/rustywallet-address/`
+
 ---
 
-### 3. rustywallet-mnemonic 📋
+### 3. rustywallet-mnemonic ✅ (Current)
 BIP39 Mnemonic / Seed Phrase
 
 **Features:**
