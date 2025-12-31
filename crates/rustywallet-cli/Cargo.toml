@@ -1,0 +1,21 @@
+[package]
+name = "rustywallet-cli"
+version = "0.1.0"
+edition = "2021"
+description = "Command-line tool for cryptocurrency wallet operations"
+license = "MIT"
+repository = "https://github.com/pfrfrfr/rustywallet"
+keywords = ["cryptocurrency", "wallet", "bitcoin", "ethereum", "cli"]
+categories = ["command-line-utilities", "cryptography"]
+readme = "README.md"
+
+[[bin]]
+name = "rustywallet"
+path = "src/main.rs"
+
+[dependencies]
+rustywallet = { version = "0.1", path = "../rustywallet" }
+clap = { version = "4", features = ["derive"] }
+anyhow = "1.0"
+colored = "2"
+hex = "0.4"

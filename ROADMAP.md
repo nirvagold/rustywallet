@@ -15,7 +15,7 @@ rustywallet/
 │   ├── rustywallet-hd/         # ✔️ Done
 │   └── rustywallet-signer/     # ✔️ Done
 ├── rustywallet/                # ✔️ Done
-└── rustywallet-cli/            # ✅ In Progress
+└── rustywallet-cli/            # ✔️ Done
 ```
 
 ## Crates Detail
@@ -112,7 +112,7 @@ let mnemonic = Mnemonic::generate(WordCount::Words12);
 
 ---
 
-### 7. rustywallet-cli ✅ (Current)
+### 7. rustywallet-cli ✔️ (Done)
 Command-line tool
 
 ```bash
@@ -121,9 +121,11 @@ cargo install rustywallet-cli
 
 # Usage
 rustywallet generate
-rustywallet address --key <hex> --chain btc
+rustywallet address --key <hex> --type segwit
 rustywallet mnemonic --words 12
+rustywallet hd --mnemonic "..."
 rustywallet sign --key <hex> --message "hello"
+rustywallet verify --address <addr> --message "hello" --signature <sig>
 ```
 
 ---
