@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/user/rustywallet"
+authors = ["Your Name <your@email.com>"]
+
+[workspace.dependencies]
+# Crypto
+secp256k1 = { version = "0.29", features = ["rand"] }
+
+# Encoding
+bs58 = "0.5"
+sha2 = "0.10"
+
+# Utils
+rand = "0.8"
+zeroize = { version = "1.8", features = ["derive"] }
+thiserror = "1.0"
+
+# Dev dependencies
+proptest = "1.5"

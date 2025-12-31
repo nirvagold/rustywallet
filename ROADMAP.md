@@ -1,0 +1,148 @@
+# rustywallet - Roadmap
+
+## Overview
+
+**rustywallet** adalah ekosistem Rust crates untuk cryptocurrency wallet utilities dengan fokus pada Developer Experience (DX) yang clean dan type-safe.
+
+## Crate Structure
+
+```
+rustywallet/
+├── crates/
+│   ├── rustywallet-keys/       # ✔️ Done
+│   ├── rustywallet-address/    # ✅ In Progress
+│   ├── rustywallet-mnemonic/   # 📋 Planned
+│   ├── rustywallet-hd/         # 📋 Planned
+│   └── rustywallet-signer/     # 📋 Planned
+├── rustywallet/                # 📋 Umbrella crate
+└── rustywallet-cli/            # 📋 CLI Tool
+```
+
+## Crates Detail
+
+### 1. rustywallet-keys ✔️ (Done)
+Private & Public Key management
+
+**Features:**
+- Generate random private key (CSPRNG)
+- Import from hex, WIF, bytes
+- Export to hex, WIF, bytes
+- Validate private key
+- Derive public key (compressed/uncompressed)
+- Format conversion
+- Secure memory handling (zeroize on drop)
+
+**Spec:** `.kiro/specs/rustywallet-keys/`
+
+---
+
+### 2. rustywallet-address ✅ (Current)
+Address generation untuk berbagai blockchain
+
+**Features:**
+- Bitcoin Legacy (P2PKH) - prefix 1
+- Bitcoin SegWit (P2WPKH) - prefix bc1q
+- Bitcoin Taproot (P2TR) - prefix bc1p
+- Ethereum (checksummed) - prefix 0x
+- Address validation
+
+**Dependencies:** rustywallet-keys
+
+---
+
+### 3. rustywallet-mnemonic 📋
+BIP39 Mnemonic / Seed Phrase
+
+**Features:**
+- Generate 12/24 word mnemonic
+- Validate mnemonic
+- Mnemonic → Seed → Private Key
+- Multi-language wordlists (EN, ID, etc.)
+- Passphrase support
+
+**Dependencies:** rustywallet-keys
+
+---
+
+### 4. rustywallet-hd 📋
+HD Wallet (BIP32/BIP44)
+
+**Features:**
+- Master key derivation from seed
+- Child key derivation (hardened/normal)
+- Standard derivation paths (m/44'/0'/0'/0/0)
+- Extended keys (xpub, xprv)
+- Account/address discovery
+
+**Dependencies:** rustywallet-keys, rustywallet-mnemonic
+
+---
+
+### 5. rustywallet-signer 📋
+Message & Transaction Signing
+
+**Features:**
+- Sign arbitrary messages
+- Verify signatures
+- ECDSA signatures (Bitcoin)
+- Personal sign (Ethereum)
+- Recoverable signatures
+
+**Dependencies:** rustywallet-keys
+
+---
+
+### 6. rustywallet (Umbrella) 📋
+Re-export semua crates dengan unified API
+
+```rust
+use rustywallet::prelude::*;
+
+let key = PrivateKey::random();
+let address = key.to_address(Chain::Bitcoin)?;
+let mnemonic = Mnemonic::generate(12)?;
+```
+
+---
+
+### 7. rustywallet-cli 📋
+Command-line tool
+
+```bash
+# Install
+cargo install rustywallet-cli
+
+# Usage
+rustywallet generate
+rustywallet address --key <hex> --chain btc
+rustywallet mnemonic --words 12
+rustywallet sign --key <hex> --message "hello"
+```
+
+---
+
+## Publishing to crates.io
+
+Setelah setiap crate selesai dan tested:
+
+```bash
+cd crates/rustywallet-keys
+cargo publish
+```
+
+## Status Legend
+
+- ✔️ Done - Selesai dan published ke crates.io
+- ✅ In Progress - Sedang dikerjakan
+- 🔜 Next - Akan dikerjakan setelah current selesai
+- 📋 Planned - Sudah direncanakan, belum dimulai
+
+## Pre-Publish Workflow
+
+Sebelum publish setiap crate:
+1. ✅ Semua tests passing (`cargo test`)
+2. ✅ Clippy clean (`cargo clippy`)
+3. ✅ Documentation lengkap
+4. ✅ **Demo project berhasil** - buat project demo di `examples/` untuk validasi
+5. ✅ `cargo publish --dry-run` sukses
+6. ✅ Update ROADMAP.md → ubah status ke `✔️ Done`
