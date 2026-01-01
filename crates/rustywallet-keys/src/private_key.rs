@@ -5,10 +5,63 @@
 use crate::encoding::{hex, wif};
 use crate::error::PrivateKeyError;
 use crate::network::Network;
-use rand::rngs::OsRng;
+use rand::{rngs::OsRng, CryptoRng, RngCore};
 use secp256k1::{Secp256k1, SecretKey};
 use std::fmt;
 use zeroize::Zeroize;
+
+/// An iterator that generates random private keys.
+///
+/// This iterator is infinite and memory-efficient - it generates keys on demand
+/// without storing them. Use `.take(n)` to limit the number of keys generated.
+///
+/// # Example
+///
+/// ```
+/// use rustywallet_keys::private_key::PrivateKey;
+///
+/// // Generate 1000 keys efficiently
+/// let keys: Vec<_> = PrivateKey::batch().take(1000).collect();
+/// assert_eq!(keys.len(), 1000);
+///
+/// // Process keys one by one without storing all in memory
+/// for key in PrivateKey::batch().take(100) {
+///     println!("{}", key.to_hex());
+/// }
+/// ```
+pub struct PrivateKeyIterator<R: RngCore + CryptoRng> {
+    rng: R,
+    secp: Secp256k1<secp256k1::All>,
+}
+
+impl PrivateKeyIterator<OsRng> {
+    /// Create a new iterator using the OS random number generator.
+    fn new() -> Self {
+        Self {
+            rng: OsRng,
+            secp: Secp256k1::new(),
+        }
+    }
+}
+
+impl<R: RngCore + CryptoRng> PrivateKeyIterator<R> {
+    /// Create a new iterator with a custom RNG.
+    fn with_rng(rng: R) -> Self {
+        Self {
+            rng,
+            secp: Secp256k1::new(),
+        }
+    }
+}
+
+impl<R: RngCore + CryptoRng> Iterator for PrivateKeyIterator<R> {
+    type Item = PrivateKey;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let (secret_key, _) = self.secp.generate_keypair(&mut self.rng);
+        Some(PrivateKey { inner: secret_key })
+    }
+}
 
 /// A secp256k1 private key with secure memory handling.
 ///
@@ -55,6 +108,44 @@ impl PrivateKey {
         let secp = Secp256k1::new();
         let (secret_key, _) = secp.generate_keypair(&mut OsRng);
         Self { inner: secret_key }
+    }
+
+    /// Create an infinite iterator that generates random private keys.
+    ///
+    /// This is memory-efficient as keys are generated on demand. Use `.take(n)`
+    /// to limit the number of keys.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rustywallet_keys::private_key::PrivateKey;
+    ///
+    /// // Generate 1000 keys
+    /// let keys: Vec<_> = PrivateKey::batch().take(1000).collect();
+    ///
+    /// // Process without storing all in memory
+    /// for key in PrivateKey::batch().take(100) {
+    ///     let _ = key.to_hex();
+    /// }
+    /// ```
+    pub fn batch() -> PrivateKeyIterator<OsRng> {
+        PrivateKeyIterator::new()
+    }
+
+    /// Create an iterator with a custom RNG for deterministic key generation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rustywallet_keys::private_key::PrivateKey;
+    /// use rand::SeedableRng;
+    /// use rand::rngs::StdRng;
+    ///
+    /// let rng = StdRng::seed_from_u64(12345);
+    /// let keys: Vec<_> = PrivateKey::batch_with_rng(rng).take(10).collect();
+    /// ```
+    pub fn batch_with_rng<R: RngCore + CryptoRng>(rng: R) -> PrivateKeyIterator<R> {
+        PrivateKeyIterator::with_rng(rng)
     }
 
     /// Create a private key from a 32-byte array.

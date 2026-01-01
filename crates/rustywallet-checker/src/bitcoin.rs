@@ -80,58 +80,93 @@ pub async fn check_btc_balance(address: &str) -> Result<BitcoinBalance, CheckerE
     // Try blockstream.info first (supports all address types)
     match check_via_blockstream(address).await {
         Ok(balance) => return Ok(balance),
-        Err(_) => {
+        Err(e) => {
             // Fallback to blockchain.info for legacy addresses
             if address.starts_with('1') || address.starts_with('3') {
-                return check_via_blockchain_info(address).await;
+                match check_via_blockchain_info(address).await {
+                    Ok(balance) => return Ok(balance),
+                    Err(_) => return Err(e),
+                }
             }
+            // For segwit/taproot, return the blockstream error or 0 balance
+            return Err(e);
         }
     }
-
-    // If blockstream failed and it's not a legacy address, return error
-    Err(CheckerError::ApiError(
-        "Failed to fetch balance from all providers".to_string(),
-    ))
 }
 
 async fn check_via_blockstream(address: &str) -> Result<BitcoinBalance, CheckerError> {
-    let url = format!("https://blockstream.info/api/address/{}", address);
+    // Try mempool.space first, then blockstream
+    let urls = [
+        format!("https://mempool.space/api/address/{}", address),
+        format!("https://blockstream.info/api/address/{}", address),
+    ];
+
     let client = reqwest::Client::new();
+    let mut last_error = None;
 
-    let response = client
-        .get(&url)
-        .header("User-Agent", "rustywallet-checker/0.1")
-        .send()
-        .await?;
+    for url in urls {
+        let response = match client
+            .get(&url)
+            .header("User-Agent", "rustywallet-checker/0.1")
+            .timeout(std::time::Duration::from_secs(10))
+            .send()
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                last_error = Some(CheckerError::Network(e));
+                continue;
+            }
+        };
 
-    if response.status() == 429 {
-        return Err(CheckerError::RateLimited);
+        if response.status() == 429 {
+            last_error = Some(CheckerError::RateLimited);
+            continue;
+        }
+
+        // Address not found = 0 balance (new address)
+        if response.status() == 400 || response.status() == 404 {
+            return Ok(BitcoinBalance {
+                address: address.to_string(),
+                balance: 0,
+                unconfirmed: 0,
+                total_received: 0,
+                total_sent: 0,
+                tx_count: 0,
+            });
+        }
+
+        if !response.status().is_success() {
+            last_error = Some(CheckerError::ApiError(format!(
+                "API returned status {}",
+                response.status()
+            )));
+            continue;
+        }
+
+        let data: BlockstreamResponse = match response.json().await {
+            Ok(d) => d,
+            Err(e) => {
+                last_error = Some(CheckerError::ParseError(e.to_string()));
+                continue;
+            }
+        };
+
+        let confirmed_balance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
+        let unconfirmed =
+            data.mempool_stats.funded_txo_sum as i64 - data.mempool_stats.spent_txo_sum as i64;
+
+        return Ok(BitcoinBalance {
+            address: address.to_string(),
+            balance: confirmed_balance,
+            unconfirmed,
+            total_received: data.chain_stats.funded_txo_sum,
+            total_sent: data.chain_stats.spent_txo_sum,
+            tx_count: data.chain_stats.tx_count,
+        });
     }
 
-    if !response.status().is_success() {
-        return Err(CheckerError::ApiError(format!(
-            "API returned status {}",
-            response.status()
-        )));
-    }
-
-    let data: BlockstreamResponse = response
-        .json()
-        .await
-        .map_err(|e| CheckerError::ParseError(e.to_string()))?;
-
-    let confirmed_balance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
-    let unconfirmed =
-        data.mempool_stats.funded_txo_sum as i64 - data.mempool_stats.spent_txo_sum as i64;
-
-    Ok(BitcoinBalance {
-        address: address.to_string(),
-        balance: confirmed_balance,
-        unconfirmed,
-        total_received: data.chain_stats.funded_txo_sum,
-        total_sent: data.chain_stats.spent_txo_sum,
-        tx_count: data.chain_stats.tx_count,
-    })
+    Err(last_error.unwrap_or_else(|| CheckerError::ApiError("All providers failed".to_string())))
 }
 
 async fn check_via_blockchain_info(address: &str) -> Result<BitcoinBalance, CheckerError> {

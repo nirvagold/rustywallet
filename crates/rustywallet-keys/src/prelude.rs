@@ -22,5 +22,5 @@ pub use crate::error::{KeyError, PrivateKeyError, PublicKeyError};
 pub use crate::network::Network;
 
 // Key types
-pub use crate::private_key::PrivateKey;
+pub use crate::private_key::{PrivateKey, PrivateKeyIterator};
 pub use crate::public_key::{PublicKey, PublicKeyFormat};
