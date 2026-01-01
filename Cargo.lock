@@ -1121,7 +1121,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-address"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bech32",
  "bs58",
@@ -1209,7 +1209,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-keys"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bs58",
  "proptest",

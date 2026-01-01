@@ -1,6 +1,6 @@
 [package]
 name = "rustywallet-mnemonic"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 authors = ["RustyWallet Contributors"]
 description = "BIP39 mnemonic (seed phrase) generation and management for cryptocurrency wallets"

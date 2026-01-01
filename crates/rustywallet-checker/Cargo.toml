@@ -1,6 +1,6 @@
 [package]
 name = "rustywallet-checker"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 description = "Cryptocurrency balance checker for Bitcoin and Ethereum"
 license = "MIT"

@@ -1,6 +1,6 @@
 [package]
 name = "rustywallet-hd"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 authors = ["RustyWallet Contributors"]
 description = "BIP32/BIP44 Hierarchical Deterministic wallet for cryptocurrency key derivation"
