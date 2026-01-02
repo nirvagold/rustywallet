@@ -72,7 +72,7 @@ GPU-accelerated key generation (requires dedicated GPU)
 
 ## 🔧 Phase 3: Utility Crates
 
-### 12. rustywallet-import 📋 Planned
+### 12. rustywallet-import ✅ In Progress
 Import dari berbagai wallet formats
 
 **Features:**
@@ -116,7 +116,7 @@ Electrum protocol client
 
 ---
 
-### 15. rustywallet-mempool ✅ In Progress
+### 15. rustywallet-mempool ✔️ Done
 Mempool.space API integration
 
 **Features:**
@@ -190,8 +190,8 @@ Multi-signature wallets
 2. **rustywallet-vanity** ✔️ Done
 3. **rustywallet-gpu** ⏸️ Paused (needs dedicated GPU)
 4. **rustywallet-electrum** ✔️ Done
-5. **rustywallet-mempool** ← CURRENT
-6. rustywallet-import
+5. **rustywallet-mempool** ✔️ Done
+6. **rustywallet-import** ← CURRENT
 7. rustywallet-export
 8. rustywallet-tx
 9. rustywallet-multisig
