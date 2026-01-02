@@ -55,7 +55,7 @@ PSBT (BIP174) for hardware wallet interoperability
 
 ---
 
-### 19. rustywallet-taproot 🔜 Next
+### 19. rustywallet-taproot ✔️ Done
 Full Taproot support (BIP340/341/342)
 
 **Features:**
@@ -70,7 +70,7 @@ Full Taproot support (BIP340/341/342)
 
 ---
 
-### 20. rustywallet-descriptor 📋 Planned
+### 20. rustywallet-descriptor 🔜 Next
 Output descriptors (BIP380-386)
 
 **Features:**
@@ -261,9 +261,9 @@ CoinJoin utilities
 17. ✔️ rustywallet-multisig
 
 ### v2.x (Planned)
-18. 🔜 rustywallet-psbt
-19. 📋 rustywallet-taproot
-20. 📋 rustywallet-descriptor
+18. ✔️ rustywallet-psbt
+19. ✔️ rustywallet-taproot
+20. 🔜 rustywallet-descriptor
 21. 📋 rustywallet-recovery
 22. 📋 Crate improvements (v0.2 releases)
 
