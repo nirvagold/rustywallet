@@ -150,17 +150,17 @@ Transaction building
 
 ---
 
-### 17. rustywallet-multisig 📋 Planned
+### 17. rustywallet-multisig ✔️ Done
 Multi-signature wallets
 
 **Features:**
-- M-of-N multisig setup
-- Shamir Secret Sharing (SSS)
-- Threshold signatures
-- Coordinator-less signing
-- Hardware wallet integration
+- M-of-N multisig setup (up to 15-of-15)
+- P2SH, P2WSH, P2SH-P2WSH addresses
+- BIP67 compliant key sorting
+- Partial signing and signature combination
+- Shamir Secret Sharing (split/combine)
 
-**Dependencies:** rustywallet-keys, rustywallet-tx
+**Dependencies:** rustywallet-keys, rustywallet-address
 
 ---
 
@@ -197,7 +197,7 @@ Multi-signature wallets
 6. **rustywallet-import** ✔️ Done
 7. **rustywallet-export** ✔️ Done
 8. **rustywallet-tx** ✔️ Done
-9. **rustywallet-multisig** ← NEXT
+9. **rustywallet-multisig** ✔️ Done
 
 ---
 

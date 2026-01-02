@@ -1860,6 +1860,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-multisig"
+version = "0.1.0"
+dependencies = [
+ "bech32",
+ "bs58",
+ "proptest",
+ "ripemd",
+ "rustywallet-address",
+ "rustywallet-keys",
+ "secp256k1",
+ "sha2",
+ "thiserror 2.0.17",
+ "zeroize",
+]
+
+[[package]]
+name = "rustywallet-multisig-demo"
+version = "0.1.0"
+dependencies = [
+ "rustywallet-keys",
+ "rustywallet-multisig",
+]
+
+[[package]]
 name = "rustywallet-signer"
 version = "0.1.2"
 dependencies = [
@@ -1887,14 +1911,6 @@ dependencies = [
  "secp256k1",
  "sha2",
  "thiserror 2.0.17",
-]
-
-[[package]]
-name = "rustywallet-tx-demo"
-version = "0.1.0"
-dependencies = [
- "rustywallet-keys",
- "rustywallet-tx",
 ]
 
 [[package]]
