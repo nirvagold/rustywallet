@@ -1,0 +1,21 @@
+[package]
+name = "rustywallet-vanity"
+description = "Vanity address generator for Bitcoin and Ethereum"
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+keywords = ["crypto", "bitcoin", "vanity", "address", "wallet"]
+categories = ["cryptography"]
+
+[dependencies]
+rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
+rustywallet-address = { path = "../rustywallet-address", version = "0.1" }
+rustywallet-batch = { path = "../rustywallet-batch", version = "0.1" }
+thiserror.workspace = true
+rayon = "1.10"
+
+[dev-dependencies]
+proptest.workspace = true

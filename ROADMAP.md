@@ -40,7 +40,7 @@ High-performance batch key generation
 
 ---
 
-### 10. rustywallet-vanity ✅ In Progress
+### 10. rustywallet-vanity ✔️ Done
 Vanity address generator
 
 **Features:**
@@ -49,12 +49,13 @@ Vanity address generator
 - Difficulty estimation
 - Progress callback
 - Case-insensitive matching
+- Support P2PKH, P2WPKH, P2TR, Ethereum
 
 **Dependencies:** rustywallet-keys, rustywallet-address, rustywallet-batch
 
 ---
 
-### 11. rustywallet-gpu 📋 Planned
+### 11. rustywallet-gpu ✅ In Progress
 GPU-accelerated key generation
 
 **Features:**
