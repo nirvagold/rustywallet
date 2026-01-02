@@ -8,159 +8,210 @@
 
 ## 📦 Phase 1: Core Crates (v1) ✔️ COMPLETE
 
-```
-rustywallet/
-├── crates/
-│   ├── rustywallet-keys/       # ✔️ Done
-│   ├── rustywallet-address/    # ✔️ Done
-│   ├── rustywallet-mnemonic/   # ✔️ Done
-│   ├── rustywallet-hd/         # ✔️ Done
-│   ├── rustywallet-signer/     # ✔️ Done
-│   ├── rustywallet-checker/    # ✔️ Done
-│   ├── rustywallet-bloom/      # ✔️ Done (internal)
-│   └── rustywallet-cli/        # ✔️ Done
-└── rustywallet/                # ✔️ Done (umbrella)
-```
+| Crate | Status | Description |
+|-------|--------|-------------|
+| rustywallet-keys | ✔️ Done | Private & Public key management |
+| rustywallet-address | ✔️ Done | Address generation (P2PKH, P2SH, P2WPKH, P2TR, ETH) |
+| rustywallet-mnemonic | ✔️ Done | BIP39 mnemonic/seed phrase |
+| rustywallet-hd | ✔️ Done | HD Wallet (BIP32/BIP44/BIP84) |
+| rustywallet-signer | ✔️ Done | Message & transaction signing |
+| rustywallet-checker | ✔️ Done | Address balance checking via APIs |
+| rustywallet-bloom | ✔️ Done | Bloom filter for address matching |
+| rustywallet-cli | ✔️ Done | Command-line interface |
+| rustywallet | ✔️ Done | Umbrella crate |
 
 ---
 
-## 🚀 Phase 2: Performance Crates (v2)
+## 🚀 Phase 2: Performance & Network (v1.x) ✔️ COMPLETE
 
-### 9. rustywallet-batch ✔️ Done
-High-performance batch key generation
-
-**Features:**
-- Batch key generation dengan parallel processing
-- Incremental key scanning (EC point addition)
-- FastKeyGenerator dengan ChaCha20 RNG (7M+ keys/sec)
-- Memory-efficient streaming
-- Target: 1M+ keys/sec ✅ Achieved
-
-**Dependencies:** rustywallet-keys, rayon
-
----
-
-### 10. rustywallet-vanity ✔️ Done
-Vanity address generator
-
-**Features:**
-- Generate custom prefix addresses (1Love..., 1BTC...)
-- Multi-pattern matching
-- Difficulty estimation
-- Progress callback
-- Case-insensitive matching
-- Support P2PKH, P2WPKH, P2TR, Ethereum
-
-**Dependencies:** rustywallet-keys, rustywallet-address, rustywallet-batch
+| Crate | Status | Description |
+|-------|--------|-------------|
+| rustywallet-batch | ✔️ Done | High-performance batch key generation (7M+ keys/sec) |
+| rustywallet-vanity | ✔️ Done | Vanity address generator |
+| rustywallet-electrum | ✔️ Done | Electrum protocol client |
+| rustywallet-mempool | ✔️ Done | Mempool.space API integration |
+| rustywallet-import | ✔️ Done | Import from wallet formats |
+| rustywallet-export | ✔️ Done | Export to various formats |
+| rustywallet-tx | ✔️ Done | Transaction building & signing |
+| rustywallet-multisig | ✔️ Done | Multi-signature wallets + Shamir |
+| rustywallet-gpu | ⏸️ Paused | GPU-accelerated generation |
 
 ---
 
-### 11. rustywallet-gpu ⏸️ Paused
-GPU-accelerated key generation (requires dedicated GPU)
+## 🔧 Phase 3: Advanced Features (v2) 📋 PLANNED
+
+### 18. rustywallet-psbt 🔜 Next
+PSBT (BIP174) for hardware wallet interoperability
 
 **Features:**
-- OpenCL backend
-- CUDA backend (optional)
-- Hybrid CPU+GPU mode
-- Target: 10M+ keys/sec
+- Parse/create PSBT
+- Add inputs/outputs to PSBT
+- Sign PSBT with private keys
+- Finalize & extract transaction
+- Combine PSBTs from multiple signers
+- PSBT v2 (BIP370) support
 
-**Dependencies:** rustywallet-batch, opencl3
-
-**Note:** Paused - requires dedicated GPU (NVIDIA/AMD) for meaningful performance gains.
+**Dependencies:** rustywallet-tx, rustywallet-keys
 
 ---
 
-## 🔧 Phase 3: Utility Crates
-
-### 12. rustywallet-import ✔️ Done
-Import dari berbagai wallet formats
+### 19. rustywallet-taproot 📋 Planned
+Full Taproot support (BIP340/341/342)
 
 **Features:**
-- WIF import (compressed/uncompressed)
-- Hex import (64-char)
-- Mini key import (Casascius)
-- Mnemonic import with BIP44/49/84 paths
-- BIP38 encrypted key decryption
-- Auto-detect format
+- Schnorr signatures (BIP340)
+- Taproot key path spending
+- Tapscript (script path spending)
+- MAST (Merkelized Alternative Script Trees)
+- Tweak key derivation
+- Control block generation
 
-**Dependencies:** rustywallet-keys, rustywallet-mnemonic, rustywallet-hd, rustywallet-address
+**Dependencies:** rustywallet-keys, rustywallet-tx
 
 ---
 
-### 13. rustywallet-export ✔️ Done
-Export ke berbagai formats
+### 20. rustywallet-descriptor 📋 Planned
+Output descriptors (BIP380-386)
 
 **Features:**
-- QR code generation
-- Paper wallet PDF
-- Electrum format export
-- JSON/CSV export
-- Encrypted backup
+- Parse descriptor strings
+- Support: `pk()`, `pkh()`, `wpkh()`, `sh()`, `wsh()`, `tr()`
+- Derive addresses from descriptors
+- Checksum validation
+- Range derivation for HD descriptors
+- Basic Miniscript support
 
-**Dependencies:** rustywallet-keys, qrcode, printpdf
+**Dependencies:** rustywallet-keys, rustywallet-address, rustywallet-hd
 
 ---
 
-## 🌐 Phase 4: Network Crates
-
-### 14. rustywallet-electrum ✔️ Done
-Electrum protocol client
+### 21. rustywallet-recovery 📋 Planned
+Wallet recovery tools
 
 **Features:**
-- Electrum server connection (TCP/SSL)
-- Batch balance checking (no rate limit!)
-- UTXO fetching
-- Transaction broadcasting
-- Server discovery
+- Scan blockchain for funds
+- Gap limit handling (configurable)
+- Multi-path derivation scan (BIP44/49/84/86)
+- UTXO aggregation
+- Recovery report generation
 
-**Dependencies:** tokio, rustls
+**Dependencies:** rustywallet-hd, rustywallet-electrum
 
 ---
 
-### 15. rustywallet-mempool ✔️ Done
-Mempool.space API integration
+## 🔄 Phase 3.5: Crate Improvements (v2.x)
 
-**Features:**
-- Fee estimation (low/medium/high)
-- Transaction tracking
-- Block explorer data
-- Address history
-- Webhook support
+### rustywallet-tx v0.2
+- [ ] RBF (Replace-By-Fee) - fee bumping
+- [ ] CPFP (Child-Pays-For-Parent)
+- [ ] Taproot signing (P2TR key path)
+- [ ] Additional coin selection: Branch & Bound, Random
+- [ ] Transaction batching utilities
 
-**Dependencies:** reqwest, rustywallet-checker
+### rustywallet-electrum v0.2
+- [ ] SSL certificate pinning
+- [ ] Server discovery (DNS seeds)
+- [ ] Connection pooling
+- [ ] Real-time subscriptions (address, headers)
+- [ ] Batch request optimization
+
+### rustywallet-mempool v0.2
+- [ ] WebSocket support for real-time data
+- [ ] Block subscription
+- [ ] Lightning network stats
+- [ ] Mining pool statistics
+
+### rustywallet-multisig v0.2
+- [ ] PSBT integration
+- [ ] MuSig2 (Schnorr multisig)
+- [ ] Coordinator protocol
+
+### rustywallet-hd v0.2
+- [ ] BIP85 - Deterministic entropy from BIP32
+- [ ] SLIP39 (Shamir for mnemonic)
+- [ ] Custom derivation path builder
+
+### rustywallet-address v0.2
+- [ ] Silent Payments (BIP352)
+- [ ] Address validation improvements
+
+### rustywallet-batch v0.2
+- [ ] SIMD optimization
+- [ ] Memory-mapped file output
+- [ ] Resume capability
+
+### rustywallet-vanity v0.2
+- [ ] Regex pattern support
+- [ ] Distributed search (network)
 
 ---
 
-## 💰 Phase 5: Transaction Crates
+## ⚡ Phase 4: Lightning & Advanced (v3) 📋 PLANNED
 
-### 16. rustywallet-tx ✔️ Done
-Transaction building
+### 22. rustywallet-lightning 📋 Planned
+Lightning Network basics
 
 **Features:**
-- Build Bitcoin transactions with TxBuilder
-- Coin selection (largest-first algorithm)
-- Fee calculation (vsize-based)
-- Dust threshold detection
-- Script building (P2PKH, P2WPKH, P2TR)
-- Sighash calculation (legacy + BIP143)
-- P2PKH and P2WPKH signing
-- Transaction serialization
+- BOLT11 invoice parsing/creation
+- Payment hash/preimage handling
+- Channel point derivation
+- Node ID from seed
+- Route hints parsing
+
+**Dependencies:** rustywallet-keys, rustywallet-hd
+
+---
+
+### 23. rustywallet-musig 📋 Planned
+MuSig2 Schnorr multisig (BIP327)
+
+**Features:**
+- Key aggregation
+- Nonce generation & aggregation
+- Partial signature creation
+- Signature aggregation
+- Adaptor signatures
+
+**Dependencies:** rustywallet-keys, rustywallet-taproot
+
+---
+
+### 24. rustywallet-frost 📋 Planned
+FROST threshold signatures
+
+**Features:**
+- Distributed key generation (DKG)
+- Threshold signing (t-of-n)
+- Signature aggregation
+- Robustness against malicious signers
+
+**Dependencies:** rustywallet-keys
+
+---
+
+### 25. rustywallet-silent 📋 Planned
+Silent Payments (BIP352)
+
+**Features:**
+- Silent payment address generation
+- Scanning for payments
+- Labeling support
+- Change address handling
 
 **Dependencies:** rustywallet-keys, rustywallet-address
 
 ---
 
-### 17. rustywallet-multisig ✔️ Done
-Multi-signature wallets
+### 26. rustywallet-coinjoin 📋 Planned
+CoinJoin utilities
 
 **Features:**
-- M-of-N multisig setup (up to 15-of-15)
-- P2SH, P2WSH, P2SH-P2WSH addresses
-- BIP67 compliant key sorting
-- Partial signing and signature combination
-- Shamir Secret Sharing (split/combine)
+- PayJoin (BIP78) support
+- CoinJoin transaction building
+- Equal output amounts
+- Coordinator-less protocol
 
-**Dependencies:** rustywallet-keys, rustywallet-address
+**Dependencies:** rustywallet-tx, rustywallet-psbt
 
 ---
 
@@ -169,35 +220,59 @@ Multi-signature wallets
 | Phase | Crates | Status |
 |-------|--------|--------|
 | Phase 1 (Core) | 9 crates | ✔️ Complete |
-| Phase 2 (Performance) | 3 crates | ✅ In Progress |
-| Phase 3 (Utility) | 2 crates | 📋 Planned |
-| Phase 4 (Network) | 2 crates | 📋 Planned |
-| Phase 5 (Transaction) | 2 crates | 📋 Planned |
+| Phase 2 (Performance & Network) | 9 crates | ✔️ Complete |
+| Phase 3 (Advanced v2) | 4 crates | 📋 Planned |
+| Phase 3.5 (Improvements) | 8 upgrades | 📋 Planned |
+| Phase 4 (Lightning v3) | 5 crates | 📋 Planned |
 
-**Total: 18 crates**
+**Total: 27 crates + 8 major upgrades**
 
 ---
 
 ## Status Legend
 
-- ✔️ Done - Selesai dan published ke crates.io
+- ✔️ Done - Published ke crates.io
 - ✅ In Progress - Sedang dikerjakan
-- 🔜 Next - Akan dikerjakan setelah current selesai
-- 📋 Planned - Sudah direncanakan, belum dimulai
+- 🔜 Next - Akan dikerjakan selanjutnya
+- 📋 Planned - Sudah direncanakan
+- ⏸️ Paused - Ditunda
 
 ---
 
-## Development Order (Phase 2+)
+## Development Order
 
-1. **rustywallet-batch** ✔️ Done
-2. **rustywallet-vanity** ✔️ Done
-3. **rustywallet-gpu** ⏸️ Paused (needs dedicated GPU)
-4. **rustywallet-electrum** ✔️ Done
-5. **rustywallet-mempool** ✔️ Done
-6. **rustywallet-import** ✔️ Done
-7. **rustywallet-export** ✔️ Done
-8. **rustywallet-tx** ✔️ Done
-9. **rustywallet-multisig** ✔️ Done
+### v1.x (Complete)
+1. ✔️ rustywallet-keys
+2. ✔️ rustywallet-address
+3. ✔️ rustywallet-mnemonic
+4. ✔️ rustywallet-hd
+5. ✔️ rustywallet-signer
+6. ✔️ rustywallet-checker
+7. ✔️ rustywallet-bloom
+8. ✔️ rustywallet-cli
+9. ✔️ rustywallet (umbrella)
+10. ✔️ rustywallet-batch
+11. ✔️ rustywallet-vanity
+12. ✔️ rustywallet-electrum
+13. ✔️ rustywallet-mempool
+14. ✔️ rustywallet-import
+15. ✔️ rustywallet-export
+16. ✔️ rustywallet-tx
+17. ✔️ rustywallet-multisig
+
+### v2.x (Planned)
+18. 🔜 rustywallet-psbt
+19. 📋 rustywallet-taproot
+20. 📋 rustywallet-descriptor
+21. 📋 rustywallet-recovery
+22. 📋 Crate improvements (v0.2 releases)
+
+### v3.x (Planned)
+23. 📋 rustywallet-lightning
+24. 📋 rustywallet-musig
+25. 📋 rustywallet-frost
+26. 📋 rustywallet-silent
+27. 📋 rustywallet-coinjoin
 
 ---
 
@@ -207,7 +282,7 @@ Sebelum publish setiap crate:
 1. ✅ Semua tests passing (`cargo test`)
 2. ✅ Clippy clean (`cargo clippy`)
 3. ✅ Documentation lengkap
-4. ✅ **Demo project berhasil**
+4. ✅ Demo project berhasil
 5. ✅ `cargo publish --dry-run` sukses
-6. ✅ Update ROADMAP.md → ubah status ke `✔️ Done`
+6. ✅ Update ROADMAP.md
 7. ✅ Git commit & push
