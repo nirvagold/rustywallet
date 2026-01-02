@@ -1,6 +1,6 @@
 # rustywallet-tx
 
-Bitcoin transaction building, signing, and serialization.
+Bitcoin transaction building, signing, and serialization with RBF and Taproot support.
 
 ## Features
 
@@ -8,14 +8,16 @@ Bitcoin transaction building, signing, and serialization.
 - **Coin Selection** - Automatic UTXO selection (largest-first algorithm)
 - **Fee Calculation** - vsize-based fee estimation with dust detection
 - **Script Building** - P2PKH, P2WPKH, and P2TR scriptPubKey generation
-- **Signing** - Sign P2PKH and P2WPKH inputs
+- **Signing** - Sign P2PKH, P2WPKH, and P2TR inputs
+- **RBF Support** - Replace-By-Fee (BIP125) for fee bumping
+- **Taproot** - Full P2TR key-path signing support
 - **Serialization** - Serialize transactions to hex for broadcasting
 
 ## Installation
 
 ```toml
 [dependencies]
-rustywallet-tx = "0.1"
+rustywallet-tx = "0.2"
 ```
 
 ## Quick Start
@@ -47,7 +49,7 @@ println!("Fee: {} sats", unsigned.fee());
 ## Signing Transactions
 
 ```rust
-use rustywallet_tx::{sign_p2pkh, sign_p2wpkh};
+use rustywallet_tx::{sign_p2pkh, sign_p2wpkh, sign_p2tr_key_path};
 use rustywallet_keys::prelude::PrivateKey;
 
 let private_key = PrivateKey::random();
@@ -56,11 +58,56 @@ let mut tx = unsigned.tx;
 // Sign P2PKH input
 sign_p2pkh(&mut tx, 0, &private_key).unwrap();
 
-// Or sign P2WPKH input (SegWit)
+// Sign P2WPKH input (SegWit)
 sign_p2wpkh(&mut tx, 0, 100_000, &private_key).unwrap();
+
+// Sign P2TR input (Taproot key-path)
+let prevouts = vec![(100_000u64, script_pubkey)];
+sign_p2tr_key_path(&mut tx, 0, &prevouts, &private_key.to_bytes()).unwrap();
 
 // Serialize for broadcast
 let hex = tx.to_hex();
+```
+
+## RBF (Replace-By-Fee)
+
+```rust
+use rustywallet_tx::{is_rbf_enabled, enable_rbf, bump_fee, RbfBuilder};
+
+// Create RBF-enabled input
+let builder = RbfBuilder::new();
+let input = builder.create_input(txid, vout);
+
+// Check if transaction is replaceable
+if is_rbf_enabled(&tx) {
+    // Bump fee by reducing change output
+    bump_fee(&mut tx, 1000, change_output_index).unwrap();
+}
+
+// Or create a full replacement transaction
+let replacement = create_replacement(&tx, new_fee_rate, change_index).unwrap();
+```
+
+## Taproot (P2TR) Signing
+
+```rust
+use rustywallet_tx::{sign_p2tr_key_path, sign_p2tr_key_path_with_sighash};
+use rustywallet_taproot::TaprootSighashType;
+
+// All prevouts needed for Taproot sighash
+let prevouts = vec![
+    (100_000u64, script_pubkey_1),
+    (50_000u64, script_pubkey_2),
+];
+
+// Sign with default sighash (64-byte signature)
+sign_p2tr_key_path(&mut tx, 0, &prevouts, &private_key).unwrap();
+
+// Sign with explicit sighash type (65-byte signature)
+sign_p2tr_key_path_with_sighash(
+    &mut tx, 0, &prevouts, &private_key,
+    TaprootSighashType::All
+).unwrap();
 ```
 
 ## Coin Selection

@@ -60,6 +60,8 @@ pub mod coin_selection;
 pub mod sighash;
 pub mod builder;
 pub mod signing;
+pub mod rbf;
+pub mod taproot;
 
 pub use error::{TxError, Result};
 pub use types::{Transaction, TxInput, TxOutput, Utxo};
@@ -72,6 +74,15 @@ pub use coin_selection::select_coins;
 pub use sighash::{sighash_legacy, sighash_segwit, sighash_type};
 pub use builder::{TxBuilder, UnsignedTx, InputInfo};
 pub use signing::{sign_p2pkh, sign_p2wpkh, sign_all};
+pub use rbf::{
+    is_rbf_enabled, enable_rbf, disable_rbf, 
+    create_replacement, bump_fee, RbfBuilder,
+    sequence as rbf_sequence,
+};
+pub use taproot::{
+    sign_p2tr_key_path, sign_p2tr_key_path_with_sighash,
+    sign_all_p2tr, is_p2tr_script, extract_p2tr_pubkey,
+};
 
 /// Prelude module for convenient imports.
 pub mod prelude {
@@ -80,7 +91,10 @@ pub mod prelude {
         TxBuilder, UnsignedTx,
         TxError, Result,
         sign_p2pkh, sign_p2wpkh, sign_all,
+        sign_p2tr_key_path, sign_all_p2tr,
         estimate_fee, calculate_fee, is_dust,
         select_coins,
+        is_rbf_enabled, enable_rbf, disable_rbf,
+        bump_fee, RbfBuilder,
     };
 }

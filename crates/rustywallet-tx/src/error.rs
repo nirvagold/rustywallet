@@ -54,6 +54,27 @@ pub enum TxError {
         /// Number of inputs
         count: usize,
     },
+
+    /// RBF not enabled on transaction
+    #[error("RBF not enabled: transaction has no replaceable inputs")]
+    RbfNotEnabled,
+
+    /// RBF fee too low
+    #[error("RBF fee too low: current {current} sat, required at least {required} sat")]
+    RbfFeeTooLow {
+        /// Current fee
+        current: u64,
+        /// Minimum required fee
+        required: u64,
+    },
+
+    /// Invalid output index
+    #[error("Invalid output index: {0}")]
+    InvalidOutputIndex(usize),
+
+    /// Taproot error
+    #[error("Taproot error: {0}")]
+    TaprootError(String),
 }
 
 /// Result type alias for transaction operations.

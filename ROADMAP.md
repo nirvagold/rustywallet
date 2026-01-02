@@ -101,10 +101,10 @@ Wallet recovery tools
 
 ## 🔄 Phase 3.5: Crate Improvements (v2.x)
 
-### rustywallet-tx v0.2
-- [ ] RBF (Replace-By-Fee) - fee bumping
+### rustywallet-tx v0.2 ✔️ Done
+- [x] RBF (Replace-By-Fee) - fee bumping
+- [x] Taproot signing (P2TR key path)
 - [ ] CPFP (Child-Pays-For-Parent)
-- [ ] Taproot signing (P2TR key path)
 - [ ] Additional coin selection: Branch & Bound, Random
 - [ ] Transaction batching utilities
 
@@ -264,8 +264,8 @@ CoinJoin utilities
 18. ✔️ rustywallet-psbt
 19. ✔️ rustywallet-taproot
 20. ✔️ rustywallet-descriptor
-21. 🔜 rustywallet-recovery
-22. 📋 Crate improvements (v0.2 releases)
+21. ✔️ rustywallet-recovery
+22. ✅ Crate improvements (v0.2 releases)
 
 ### v3.x (Planned)
 23. 📋 rustywallet-lightning

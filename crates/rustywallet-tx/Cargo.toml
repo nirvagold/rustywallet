@@ -1,13 +1,13 @@
 [package]
 name = "rustywallet-tx"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["NirvaGold"]
-description = "Bitcoin transaction building, signing, and serialization"
+description = "Bitcoin transaction building, signing, and serialization with RBF and Taproot support"
 license = "MIT"
 repository = "https://github.com/nirvagold/rustywallet"
 documentation = "https://docs.rs/rustywallet-tx"
-keywords = ["bitcoin", "transaction", "cryptocurrency", "signing", "segwit"]
+keywords = ["bitcoin", "transaction", "cryptocurrency", "signing", "taproot"]
 categories = ["cryptography::cryptocurrencies"]
 readme = "README.md"
 
@@ -15,6 +15,7 @@ readme = "README.md"
 # Internal crates
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
 rustywallet-address = { version = "0.1", path = "../rustywallet-address" }
+rustywallet-taproot = { version = "0.1", path = "../rustywallet-taproot" }
 
 # Crypto
 sha2 = "0.10"
