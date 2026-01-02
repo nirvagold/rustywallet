@@ -4,7 +4,9 @@
 
 **rustywallet** adalah ekosistem Rust crates untuk cryptocurrency wallet utilities dengan fokus pada Developer Experience (DX) yang clean dan type-safe.
 
-## Crate Structure
+---
+
+## 📦 Phase 1: Core Crates (v1) ✔️ COMPLETE
 
 ```
 rustywallet/
@@ -13,151 +15,162 @@ rustywallet/
 │   ├── rustywallet-address/    # ✔️ Done
 │   ├── rustywallet-mnemonic/   # ✔️ Done
 │   ├── rustywallet-hd/         # ✔️ Done
-│   └── rustywallet-signer/     # ✔️ Done
-├── rustywallet/                # ✔️ Done
-├── rustywallet-cli/            # ✔️ Done
-└── rustywallet-checker/        # ✔️ Done
-```
-
-## Crates Detail
-
-### 1. rustywallet-keys ✔️ (Done)
-Private & Public Key management
-
-**Features:**
-- Generate random private key (CSPRNG)
-- Import from hex, WIF, bytes
-- Export to hex, WIF, bytes
-- Validate private key
-- Derive public key (compressed/uncompressed)
-- Format conversion
-- Secure memory handling (zeroize on drop)
-
-**Spec:** `.kiro/specs/rustywallet-keys/`
-
----
-
-### 2. rustywallet-address ✔️ (Done)
-Address generation untuk berbagai blockchain
-
-**Features:**
-- Bitcoin Legacy (P2PKH) - prefix 1
-- Bitcoin SegWit (P2WPKH) - prefix bc1q
-- Bitcoin Taproot (P2TR) - prefix bc1p
-- Ethereum (checksummed) - prefix 0x
-- Address validation
-
-**Dependencies:** rustywallet-keys
-
-**Spec:** `.kiro/specs/rustywallet-address/`
-
----
-
-### 3. rustywallet-mnemonic ✔️ (Done)
-BIP39 Mnemonic / Seed Phrase
-
-**Features:**
-- Generate 12/24 word mnemonic
-- Validate mnemonic
-- Mnemonic → Seed → Private Key
-- Multi-language wordlists (EN, ID, etc.)
-- Passphrase support
-
-**Spec:** `.kiro/specs/rustywallet-mnemonic/`
-
----
-
-### 4. rustywallet-hd ✔️ (Done)
-HD Wallet (BIP32/BIP44)
-
-**Features:**
-- Master key derivation from seed
-- Child key derivation (hardened/normal)
-- Standard derivation paths (m/44'/0'/0'/0/0)
-- Extended keys (xpub, xprv)
-- Account/address discovery
-
-**Dependencies:** rustywallet-keys
-
-**Spec:** `.kiro/specs/rustywallet-hd/`
-
----
-
-### 5. rustywallet-signer ✔️ (Done)
-Message & Transaction Signing
-
-**Features:**
-- Sign arbitrary messages
-- Verify signatures
-- ECDSA signatures (Bitcoin)
-- Personal sign (Ethereum)
-- Recoverable signatures
-
-**Dependencies:** rustywallet-keys
-
-**Spec:** `.kiro/specs/rustywallet-signer/`
-
----
-
-### 6. rustywallet (Umbrella) ✔️ (Done)
-Re-export semua crates dengan unified API
-
-```rust
-use rustywallet::prelude::*;
-
-let key = PrivateKey::random();
-let mnemonic = Mnemonic::generate(WordCount::Words12);
-```
-
-**Spec:** `.kiro/specs/rustywallet/`
-
----
-
-### 7. rustywallet-cli ✔️ (Done)
-Command-line tool
-
-```bash
-# Install
-cargo install rustywallet-cli
-
-# Usage
-rustywallet generate
-rustywallet address --key <hex> --type segwit
-rustywallet mnemonic --words 12
-rustywallet hd --mnemonic "..."
-rustywallet sign --key <hex> --message "hello"
-rustywallet verify --address <addr> --message "hello" --signature <sig>
+│   ├── rustywallet-signer/     # ✔️ Done
+│   ├── rustywallet-checker/    # ✔️ Done
+│   ├── rustywallet-bloom/      # ✔️ Done (internal)
+│   └── rustywallet-cli/        # ✔️ Done
+└── rustywallet/                # ✔️ Done (umbrella)
 ```
 
 ---
 
-### 8. rustywallet-checker ✔️ (Done)
-Balance checker for Bitcoin and Ethereum
+## 🚀 Phase 2: Performance Crates (v2)
 
-```rust
-use rustywallet_checker::prelude::*;
+### 9. rustywallet-batch ✔️ Done
+High-performance batch key generation
 
-// Check Bitcoin balance
-let btc = check_btc_balance("1A1zP1...").await?;
-println!("BTC: {} satoshis", btc.balance);
+**Features:**
+- Batch key generation dengan parallel processing
+- Incremental key scanning (EC point addition)
+- FastKeyGenerator dengan ChaCha20 RNG (7M+ keys/sec)
+- Memory-efficient streaming
+- Target: 1M+ keys/sec ✅ Achieved
 
-// Check Ethereum balance
-let eth = check_eth_balance("0x...").await?;
-println!("ETH: {} ETH", eth.balance_eth);
-```
-
-**Spec:** `.kiro/specs/rustywallet-checker/`
+**Dependencies:** rustywallet-keys, rayon
 
 ---
 
-## Publishing to crates.io
+### 10. rustywallet-vanity ✅ In Progress
+Vanity address generator
 
-Setelah setiap crate selesai dan tested:
+**Features:**
+- Generate custom prefix addresses (1Love..., 1BTC...)
+- Multi-pattern matching
+- Difficulty estimation
+- Progress callback
+- Case-insensitive matching
 
-```bash
-cd crates/rustywallet-keys
-cargo publish
-```
+**Dependencies:** rustywallet-keys, rustywallet-address, rustywallet-batch
+
+---
+
+### 11. rustywallet-gpu 📋 Planned
+GPU-accelerated key generation
+
+**Features:**
+- OpenCL backend
+- CUDA backend (optional)
+- Hybrid CPU+GPU mode
+- Target: 10M+ keys/sec
+
+**Dependencies:** rustywallet-batch, opencl3
+
+---
+
+## 🔧 Phase 3: Utility Crates
+
+### 12. rustywallet-import 📋 Planned
+Import dari berbagai wallet formats
+
+**Features:**
+- Electrum wallet import
+- Bitcoin Core wallet.dat parser
+- Exodus export import
+- Ledger/Trezor backup import
+- BIP38 encrypted keys
+
+**Dependencies:** rustywallet-keys, rustywallet-mnemonic
+
+---
+
+### 13. rustywallet-export 📋 Planned
+Export ke berbagai formats
+
+**Features:**
+- QR code generation
+- Paper wallet PDF
+- Electrum format export
+- JSON/CSV export
+- Encrypted backup
+
+**Dependencies:** rustywallet-keys, qrcode, printpdf
+
+---
+
+## 🌐 Phase 4: Network Crates
+
+### 14. rustywallet-electrum 📋 Planned
+Electrum protocol client
+
+**Features:**
+- Electrum server connection (TCP/SSL)
+- Batch balance checking (no rate limit!)
+- UTXO fetching
+- Transaction broadcasting
+- Server discovery
+
+**Dependencies:** tokio, rustls
+
+---
+
+### 15. rustywallet-mempool 📋 Planned
+Mempool.space API integration
+
+**Features:**
+- Fee estimation (low/medium/high)
+- Transaction tracking
+- Block explorer data
+- Address history
+- Webhook support
+
+**Dependencies:** reqwest, rustywallet-checker
+
+---
+
+## 💰 Phase 5: Transaction Crates
+
+### 16. rustywallet-tx 📋 Planned
+Transaction building
+
+**Features:**
+- Build Bitcoin transactions
+- PSBT (Partially Signed Bitcoin Transaction)
+- Coin selection algorithms
+- Fee calculation
+- RBF (Replace-By-Fee)
+- SegWit/Taproot support
+
+**Dependencies:** rustywallet-keys, rustywallet-signer
+
+---
+
+### 17. rustywallet-multisig 📋 Planned
+Multi-signature wallets
+
+**Features:**
+- M-of-N multisig setup
+- Shamir Secret Sharing (SSS)
+- Threshold signatures
+- Coordinator-less signing
+- Hardware wallet integration
+
+**Dependencies:** rustywallet-keys, rustywallet-tx
+
+---
+
+## 📊 Progress Summary
+
+| Phase | Crates | Status |
+|-------|--------|--------|
+| Phase 1 (Core) | 9 crates | ✔️ Complete |
+| Phase 2 (Performance) | 3 crates | ✅ In Progress |
+| Phase 3 (Utility) | 2 crates | 📋 Planned |
+| Phase 4 (Network) | 2 crates | 📋 Planned |
+| Phase 5 (Transaction) | 2 crates | 📋 Planned |
+
+**Total: 18 crates**
+
+---
 
 ## Status Legend
 
@@ -166,12 +179,29 @@ cargo publish
 - 🔜 Next - Akan dikerjakan setelah current selesai
 - 📋 Planned - Sudah direncanakan, belum dimulai
 
+---
+
+## Development Order (Phase 2+)
+
+1. **rustywallet-batch** ✔️ Done
+2. **rustywallet-vanity** ← CURRENT
+3. rustywallet-electrum
+4. rustywallet-mempool
+5. rustywallet-import
+6. rustywallet-export
+7. rustywallet-tx
+8. rustywallet-multisig
+9. rustywallet-gpu (last, most complex)
+
+---
+
 ## Pre-Publish Workflow
 
 Sebelum publish setiap crate:
 1. ✅ Semua tests passing (`cargo test`)
 2. ✅ Clippy clean (`cargo clippy`)
 3. ✅ Documentation lengkap
-4. ✅ **Demo project berhasil** - buat project demo di `examples/` untuk validasi
+4. ✅ **Demo project berhasil**
 5. ✅ `cargo publish --dry-run` sukses
 6. ✅ Update ROADMAP.md → ubah status ke `✔️ Done`
+7. ✅ Git commit & push

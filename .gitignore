@@ -23,6 +23,13 @@ Thumbs.db
 # Kiro
 .kiro/
 
-/*-demo/
-
+# Demo projects (temporary)
 examples/
+
+# Address files
+addresses.txt
+*.txt
+!README.txt
+
+# Log files
+*.log
