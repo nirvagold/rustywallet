@@ -87,7 +87,7 @@ Import dari berbagai wallet formats
 
 ---
 
-### 13. rustywallet-export 🔜 Next
+### 13. rustywallet-export ✔️ Done
 Export ke berbagai formats
 
 **Features:**
@@ -193,8 +193,8 @@ Multi-signature wallets
 4. **rustywallet-electrum** ✔️ Done
 5. **rustywallet-mempool** ✔️ Done
 6. **rustywallet-import** ✔️ Done
-7. **rustywallet-export** ← CURRENT
-8. rustywallet-tx
+7. **rustywallet-export** ✔️ Done
+8. **rustywallet-tx** ← CURRENT
 9. rustywallet-multisig
 
 ---

@@ -1749,6 +1749,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-export"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "bs58",
+ "rustywallet-address",
+ "rustywallet-import",
+ "rustywallet-keys",
+ "scrypt",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "rustywallet-export-demo"
+version = "0.1.0"
+dependencies = [
+ "rustywallet-export",
+ "rustywallet-keys",
+]
+
+[[package]]
 name = "rustywallet-generator-demo"
 version = "0.1.0"
 dependencies = [
@@ -1794,14 +1818,6 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "zeroize",
-]
-
-[[package]]
-name = "rustywallet-import-demo"
-version = "0.1.0"
-dependencies = [
- "rustywallet-import",
- "rustywallet-keys",
 ]
 
 [[package]]
