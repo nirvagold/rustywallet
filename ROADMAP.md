@@ -185,14 +185,14 @@ Multi-signature wallets
 ## Development Order (Phase 2+)
 
 1. **rustywallet-batch** ✔️ Done
-2. **rustywallet-vanity** ← CURRENT
-3. rustywallet-electrum
-4. rustywallet-mempool
-5. rustywallet-import
-6. rustywallet-export
-7. rustywallet-tx
-8. rustywallet-multisig
-9. rustywallet-gpu (last, most complex)
+2. **rustywallet-vanity** ✔️ Done
+3. **rustywallet-gpu** ← CURRENT
+4. rustywallet-electrum
+5. rustywallet-mempool
+6. rustywallet-import
+7. rustywallet-export
+8. rustywallet-tx
+9. rustywallet-multisig
 
 ---
 
