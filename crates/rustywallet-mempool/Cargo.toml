@@ -1,6 +1,6 @@
 [package]
 name = "rustywallet-mempool"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["NirvaGold"]
 description = "Mempool.space API client for fee estimation, address info, and transaction tracking"
@@ -20,7 +20,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Async
-tokio = { version = "1.0", features = ["rt-multi-thread"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "sync"] }
 
 # Error handling
 thiserror = "2.0"

@@ -115,11 +115,11 @@ Wallet recovery tools
 - [x] Real-time subscriptions (address, headers)
 - [x] Batch request optimization
 
-### rustywallet-mempool v0.2
-- [ ] WebSocket support for real-time data
-- [ ] Block subscription
-- [ ] Lightning network stats
-- [ ] Mining pool statistics
+### rustywallet-mempool v0.2 ✔️ Done
+- [x] WebSocket support for real-time data
+- [x] Block subscription
+- [x] Lightning network stats
+- [x] Mining pool statistics
 
 ### rustywallet-multisig v0.2 ✔️ Done
 - [x] PSBT integration

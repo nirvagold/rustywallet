@@ -45,6 +45,22 @@ pub enum MempoolError {
     /// Address not found
     #[error("Address not found: {0}")]
     AddressNotFound(String),
+
+    /// WebSocket error
+    #[error("WebSocket error: {0}")]
+    WebSocketError(String),
+
+    /// WebSocket connection closed
+    #[error("WebSocket connection closed")]
+    WebSocketClosed,
+
+    /// Lightning API error
+    #[error("Lightning API error: {0}")]
+    LightningError(String),
+
+    /// Mining API error
+    #[error("Mining API error: {0}")]
+    MiningError(String),
 }
 
 /// Result type alias for Mempool operations.

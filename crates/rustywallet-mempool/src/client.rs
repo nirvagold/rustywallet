@@ -72,6 +72,16 @@ impl MempoolClient {
         }
     }
 
+    /// Get the base URL.
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    /// Get the HTTP client (for internal use by extension modules).
+    pub fn http_client(&self) -> &Client {
+        &self.client
+    }
+
     /// Make a GET request to the API.
     async fn get<T: serde::de::DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
         let url = format!("{}{}", self.base_url, endpoint);
