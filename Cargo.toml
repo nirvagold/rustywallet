@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "examples/rustywallet-checker-demo", "examples/rustywallet-generator-demo", "examples/rustywallet-batch-demo", "examples/rustywallet-vanity-demo", "examples/rustywallet-electrum-demo", "examples/rustywallet-mempool-demo"]
+members = ["crates/*", "examples/rustywallet-checker-demo", "examples/rustywallet-generator-demo", "examples/rustywallet-batch-demo", "examples/rustywallet-vanity-demo", "examples/rustywallet-electrum-demo", "examples/rustywallet-mempool-demo", "examples/rustywallet-import-demo"]
 
 [workspace.package]
 version = "0.1.3"

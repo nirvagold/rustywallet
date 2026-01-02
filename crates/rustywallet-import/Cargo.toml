@@ -1,0 +1,40 @@
+[package]
+name = "rustywallet-import"
+version = "0.1.0"
+edition = "2021"
+authors = ["NirvaGold"]
+description = "Import private keys from various wallet formats (WIF, hex, mnemonic, BIP38, mini key)"
+license = "MIT"
+repository = "https://github.com/nirvagold/rustywallet"
+documentation = "https://docs.rs/rustywallet-import"
+keywords = ["bitcoin", "wallet", "import", "cryptocurrency", "bip38"]
+categories = ["cryptography::cryptocurrencies"]
+readme = "README.md"
+
+[dependencies]
+# Internal crates
+rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
+rustywallet-mnemonic = { version = "0.1", path = "../rustywallet-mnemonic" }
+rustywallet-hd = { version = "0.1", path = "../rustywallet-hd" }
+rustywallet-address = { version = "0.1", path = "../rustywallet-address" }
+
+# Crypto
+sha2 = "0.10"
+aes = "0.8"
+scrypt = "0.11"
+
+# Encoding
+bs58 = "0.5"
+hex = "0.4"
+
+# Error handling
+thiserror = "2.0"
+
+# Utilities
+zeroize = { version = "1.8", features = ["derive"] }
+
+[dev-dependencies]
+proptest = "1.0"
+
+[features]
+default = []

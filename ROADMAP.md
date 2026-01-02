@@ -72,21 +72,22 @@ GPU-accelerated key generation (requires dedicated GPU)
 
 ## 🔧 Phase 3: Utility Crates
 
-### 12. rustywallet-import ✅ In Progress
+### 12. rustywallet-import ✔️ Done
 Import dari berbagai wallet formats
 
 **Features:**
-- Electrum wallet import
-- Bitcoin Core wallet.dat parser
-- Exodus export import
-- Ledger/Trezor backup import
-- BIP38 encrypted keys
+- WIF import (compressed/uncompressed)
+- Hex import (64-char)
+- Mini key import (Casascius)
+- Mnemonic import with BIP44/49/84 paths
+- BIP38 encrypted key decryption
+- Auto-detect format
 
-**Dependencies:** rustywallet-keys, rustywallet-mnemonic
+**Dependencies:** rustywallet-keys, rustywallet-mnemonic, rustywallet-hd, rustywallet-address
 
 ---
 
-### 13. rustywallet-export 📋 Planned
+### 13. rustywallet-export 🔜 Next
 Export ke berbagai formats
 
 **Features:**
@@ -191,8 +192,8 @@ Multi-signature wallets
 3. **rustywallet-gpu** ⏸️ Paused (needs dedicated GPU)
 4. **rustywallet-electrum** ✔️ Done
 5. **rustywallet-mempool** ✔️ Done
-6. **rustywallet-import** ← CURRENT
-7. rustywallet-export
+6. **rustywallet-import** ✔️ Done
+7. **rustywallet-export** ← CURRENT
 8. rustywallet-tx
 9. rustywallet-multisig
 
