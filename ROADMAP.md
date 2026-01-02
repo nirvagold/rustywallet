@@ -133,18 +133,20 @@ Mempool.space API integration
 
 ## 💰 Phase 5: Transaction Crates
 
-### 16. rustywallet-tx 📋 Planned
+### 16. rustywallet-tx ✔️ Done
 Transaction building
 
 **Features:**
-- Build Bitcoin transactions
-- PSBT (Partially Signed Bitcoin Transaction)
-- Coin selection algorithms
-- Fee calculation
-- RBF (Replace-By-Fee)
-- SegWit/Taproot support
+- Build Bitcoin transactions with TxBuilder
+- Coin selection (largest-first algorithm)
+- Fee calculation (vsize-based)
+- Dust threshold detection
+- Script building (P2PKH, P2WPKH, P2TR)
+- Sighash calculation (legacy + BIP143)
+- P2PKH and P2WPKH signing
+- Transaction serialization
 
-**Dependencies:** rustywallet-keys, rustywallet-signer
+**Dependencies:** rustywallet-keys, rustywallet-address
 
 ---
 
@@ -194,8 +196,8 @@ Multi-signature wallets
 5. **rustywallet-mempool** ✔️ Done
 6. **rustywallet-import** ✔️ Done
 7. **rustywallet-export** ✔️ Done
-8. **rustywallet-tx** ← CURRENT
-9. rustywallet-multisig
+8. **rustywallet-tx** ✔️ Done
+9. **rustywallet-multisig** ← NEXT
 
 ---
 
