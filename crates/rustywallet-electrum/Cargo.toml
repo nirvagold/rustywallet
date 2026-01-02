@@ -1,0 +1,42 @@
+[package]
+name = "rustywallet-electrum"
+version = "0.1.0"
+edition = "2021"
+authors = ["NirvaGold"]
+description = "Electrum protocol client for Bitcoin balance checking and UTXO fetching"
+license = "MIT"
+repository = "https://github.com/nirvagold/rustywallet"
+documentation = "https://docs.rs/rustywallet-electrum"
+keywords = ["bitcoin", "electrum", "blockchain", "cryptocurrency", "wallet"]
+categories = ["cryptography::cryptocurrencies", "network-programming"]
+readme = "README.md"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.0", features = ["net", "io-util", "time", "sync", "rt-multi-thread"] }
+
+# TLS support (using older versions that use ring only)
+tokio-rustls = "0.24"
+rustls = { version = "0.21", features = ["dangerous_configuration"] }
+rustls-pemfile = "1.0"
+webpki-roots = "0.25"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Utilities
+thiserror = "2.0"
+hex = "0.4"
+sha2 = "0.10"
+bitcoin = { version = "0.32", features = ["base64"] }
+
+# Logging
+tracing = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["full", "test-util"] }
+proptest = "1.0"
+
+[features]
+default = []

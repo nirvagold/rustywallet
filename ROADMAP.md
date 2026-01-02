@@ -55,8 +55,8 @@ Vanity address generator
 
 ---
 
-### 11. rustywallet-gpu ✅ In Progress
-GPU-accelerated key generation
+### 11. rustywallet-gpu ⏸️ Paused
+GPU-accelerated key generation (requires dedicated GPU)
 
 **Features:**
 - OpenCL backend
@@ -65,6 +65,8 @@ GPU-accelerated key generation
 - Target: 10M+ keys/sec
 
 **Dependencies:** rustywallet-batch, opencl3
+
+**Note:** Paused - requires dedicated GPU (NVIDIA/AMD) for meaningful performance gains.
 
 ---
 
@@ -100,7 +102,7 @@ Export ke berbagai formats
 
 ## 🌐 Phase 4: Network Crates
 
-### 14. rustywallet-electrum 📋 Planned
+### 14. rustywallet-electrum ✔️ Done
 Electrum protocol client
 
 **Features:**
@@ -114,7 +116,7 @@ Electrum protocol client
 
 ---
 
-### 15. rustywallet-mempool 📋 Planned
+### 15. rustywallet-mempool ✅ In Progress
 Mempool.space API integration
 
 **Features:**
@@ -186,9 +188,9 @@ Multi-signature wallets
 
 1. **rustywallet-batch** ✔️ Done
 2. **rustywallet-vanity** ✔️ Done
-3. **rustywallet-gpu** ← CURRENT
-4. rustywallet-electrum
-5. rustywallet-mempool
+3. **rustywallet-gpu** ⏸️ Paused (needs dedicated GPU)
+4. **rustywallet-electrum** ✔️ Done
+5. **rustywallet-mempool** ← CURRENT
 6. rustywallet-import
 7. rustywallet-export
 8. rustywallet-tx
