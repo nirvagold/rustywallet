@@ -12,6 +12,7 @@ Comprehensive cryptocurrency address generation and validation library for Bitco
 - **Bitcoin Legacy (P2PKH)** - Pay-to-Public-Key-Hash addresses (`1...` mainnet, `m`/`n` testnet)
 - **Bitcoin SegWit (P2WPKH)** - Pay-to-Witness-Public-Key-Hash addresses (`bc1q...` mainnet, `tb1q...` testnet)
 - **Bitcoin Taproot (P2TR)** - Pay-to-Taproot addresses (`bc1p...` mainnet, `tb1p...` testnet)
+- **Silent Payments (BIP352)** - Privacy-preserving addresses (`sp1...` mainnet, `tsp1...` testnet)
 - **Ethereum** - Ethereum addresses with EIP-55 checksum validation (`0x...`)
 - **Multi-network support** - Bitcoin mainnet, testnet, regtest, signet
 - **Address validation** - Comprehensive validation with detailed error reporting
@@ -25,7 +26,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rustywallet-address = "0.1"
+rustywallet-address = "0.2"
 rustywallet-keys = "0.1"
 ```
 
@@ -107,6 +108,35 @@ let address = P2TRAddress::from_str("bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8z
 
 // Validate
 P2TRAddress::validate("bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297")?;
+```
+
+### Silent Payments (BIP352)
+
+Privacy-preserving addresses using Bech32m encoding:
+
+```rust
+use rustywallet_address::prelude::*;
+use rustywallet_address::silent_payments::{SilentPaymentAddress, SilentPaymentLabel};
+
+// Create from scan and spend keys
+let scan_key = PrivateKey::random();
+let spend_key = PrivateKey::random();
+let address = SilentPaymentAddress::new(
+    &scan_key.public_key(),
+    &spend_key.public_key(),
+    Network::BitcoinMainnet,
+)?;
+println!("SP Address: {}", address); // sp1q...
+
+// Single-key mode (scan = spend)
+let key = PrivateKey::random();
+let address = SilentPaymentAddress::from_single_key(&key.public_key(), Network::BitcoinMainnet)?;
+
+// Parse from string
+let address = SilentPaymentAddress::parse("sp1q...")?;
+
+// Labels for multiple addresses
+let label = SilentPaymentLabel::new(1);
 ```
 
 ### Ethereum

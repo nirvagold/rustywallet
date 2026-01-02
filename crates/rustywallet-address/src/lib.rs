@@ -76,6 +76,7 @@ pub mod error;
 pub mod ethereum;
 pub mod network;
 pub mod prelude;
+pub mod silent_payments;
 
 // Re-export main types at crate root
 pub use address::{Address, AddressFormat};
@@ -83,6 +84,7 @@ pub use bitcoin::{BitcoinAddress, BitcoinAddressType, P2PKHAddress, P2TRAddress,
 pub use error::AddressError;
 pub use ethereum::EthereumAddress;
 pub use network::Network;
+pub use silent_payments::{SilentPaymentAddress, SilentPaymentDeriver, SilentPaymentLabel};
 
 #[cfg(test)]
 mod tests {

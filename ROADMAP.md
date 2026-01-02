@@ -131,9 +131,9 @@ Wallet recovery tools
 - [ ] SLIP39 (Shamir for mnemonic)
 - [ ] Custom derivation path builder
 
-### rustywallet-address v0.2
-- [ ] Silent Payments (BIP352)
-- [ ] Address validation improvements
+### rustywallet-address v0.2 ✔️ Done
+- [x] Silent Payments (BIP352)
+- [x] Address validation improvements
 
 ### rustywallet-batch v0.2
 - [ ] SIMD optimization

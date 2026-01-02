@@ -12,7 +12,7 @@ categories = ["cryptography"]
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
-rustywallet-address = { path = "../rustywallet-address", version = "0.1" }
+rustywallet-address = { path = "../rustywallet-address", version = "0.2" }
 rustywallet-batch = { path = "../rustywallet-batch", version = "0.1" }
 thiserror.workspace = true
 rayon = "1.10"

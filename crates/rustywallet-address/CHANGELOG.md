@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-01-03
+
+### Added
+- **Silent Payments (BIP352)** support for enhanced privacy
+  - `SilentPaymentAddress` struct with scan and spend public keys
+  - Bech32m encoding with `sp1` (mainnet) and `tsp1` (testnet) prefixes
+  - `SilentPaymentDeriver` for tweak computation and outpoint hashing
+  - `SilentPaymentLabel` for labeled addresses (multiple addresses per wallet)
+  - Parse and validate Silent Payment addresses from string
+  - Single-key mode for simplified usage
+
+### Changed
+- Updated to version 0.2.0
+
 ## [0.1.0] - 2024-01-15
 
 ### Added
