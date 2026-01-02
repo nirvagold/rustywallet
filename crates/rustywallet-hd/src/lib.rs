@@ -1,12 +1,13 @@
 //! # rustywallet-hd
 //!
-//! BIP32/BIP44 Hierarchical Deterministic wallet for cryptocurrency key derivation.
+//! BIP32/BIP44/BIP85 Hierarchical Deterministic wallet for cryptocurrency key derivation.
 //!
 //! This crate provides functionality to:
 //! - Create master keys from seeds
 //! - Derive child keys using BIP32 derivation
 //! - Support BIP44 standard paths
 //! - Export/import extended keys (xprv/xpub)
+//! - BIP85 deterministic entropy derivation
 //!
 //! ## Example
 //!
@@ -30,6 +31,23 @@
 //! let xpub = child.extended_public_key().to_xpub();
 //! ```
 //!
+//! ## BIP85 - Deterministic Entropy
+//!
+//! ```
+//! use rustywallet_hd::{ExtendedPrivateKey, Network, Bip85, derive_bip85_mnemonic};
+//!
+//! let seed = [0u8; 64];
+//! let master = ExtendedPrivateKey::from_seed(&seed, Network::Mainnet).unwrap();
+//!
+//! // Derive child mnemonic entropy (12 words, index 0)
+//! let entropy = derive_bip85_mnemonic(&master, 12, 0).unwrap();
+//! assert_eq!(entropy.len(), 16); // 128 bits for 12 words
+//!
+//! // Or use Bip85 struct for more options
+//! let bip85 = Bip85::new(master.clone());
+//! let child_master = bip85.derive_child_master(0, Network::Mainnet).unwrap();
+//! ```
+//!
 //! ## BIP44 Paths
 //!
 //! ```text
@@ -50,8 +68,10 @@ pub mod extended_key;
 pub mod network;
 pub mod path;
 pub mod prelude;
+pub mod bip85;
 
 pub use error::HdError;
 pub use extended_key::{ExtendedPrivateKey, ExtendedPublicKey};
 pub use network::Network;
 pub use path::{ChildNumber, DerivationPath};
+pub use bip85::{Bip85, derive_bip85_mnemonic, derive_bip85_master, app as bip85_app, language as bip85_language};

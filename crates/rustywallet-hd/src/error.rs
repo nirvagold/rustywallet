@@ -40,4 +40,12 @@ pub enum HdError {
     /// Invalid version bytes
     #[error("Invalid version bytes")]
     InvalidVersion,
+
+    /// Invalid BIP85 word count
+    #[error("Invalid BIP85 word count: {0} (must be 12, 15, 18, 21, or 24)")]
+    InvalidBip85WordCount(u32),
+
+    /// Invalid BIP85 byte count
+    #[error("Invalid BIP85 byte count: {0} (must be 16-64)")]
+    InvalidBip85ByteCount(usize),
 }

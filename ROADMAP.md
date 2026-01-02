@@ -126,8 +126,8 @@ Wallet recovery tools
 - [x] MuSig2 (Schnorr multisig) key aggregation
 - [ ] Coordinator protocol
 
-### rustywallet-hd v0.2
-- [ ] BIP85 - Deterministic entropy from BIP32
+### rustywallet-hd v0.2 ✔️ Done
+- [x] BIP85 - Deterministic entropy from BIP32
 - [ ] SLIP39 (Shamir for mnemonic)
 - [ ] Custom derivation path builder
 

@@ -1806,7 +1806,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-hd"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "bs58",
  "hex",
@@ -1819,6 +1819,14 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "zeroize",
+]
+
+[[package]]
+name = "rustywallet-hd-demo"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "rustywallet-hd",
 ]
 
 [[package]]
@@ -1900,14 +1908,6 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "zeroize",
-]
-
-[[package]]
-name = "rustywallet-multisig-demo"
-version = "0.1.0"
-dependencies = [
- "rustywallet-keys",
- "rustywallet-multisig",
 ]
 
 [[package]]
