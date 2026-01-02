@@ -121,9 +121,9 @@ Wallet recovery tools
 - [ ] Lightning network stats
 - [ ] Mining pool statistics
 
-### rustywallet-multisig v0.2
-- [ ] PSBT integration
-- [ ] MuSig2 (Schnorr multisig)
+### rustywallet-multisig v0.2 ✔️ Done
+- [x] PSBT integration
+- [x] MuSig2 (Schnorr multisig) key aggregation
 - [ ] Coordinator protocol
 
 ### rustywallet-hd v0.2

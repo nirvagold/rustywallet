@@ -1,13 +1,13 @@
 [package]
 name = "rustywallet-multisig"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["NirvaGold"]
-description = "Bitcoin multi-signature wallet utilities with Shamir Secret Sharing"
+description = "Bitcoin multi-signature wallet utilities with PSBT integration and MuSig2 support"
 license = "MIT"
 repository = "https://github.com/nirvagold/rustywallet"
 documentation = "https://docs.rs/rustywallet-multisig"
-keywords = ["bitcoin", "multisig", "cryptocurrency", "shamir", "wallet"]
+keywords = ["bitcoin", "multisig", "cryptocurrency", "musig", "psbt"]
 categories = ["cryptography::cryptocurrencies"]
 readme = "README.md"
 

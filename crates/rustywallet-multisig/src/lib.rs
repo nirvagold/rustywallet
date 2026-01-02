@@ -1,12 +1,14 @@
 //! # rustywallet-multisig
 //!
-//! Bitcoin multi-signature wallet utilities with Shamir Secret Sharing.
+//! Bitcoin multi-signature wallet utilities with Shamir Secret Sharing and MuSig2 support.
 //!
 //! ## Features
 //!
 //! - Create M-of-N multisig wallets (up to 15-of-15)
 //! - Generate P2SH, P2WSH, and P2SH-P2WSH addresses
 //! - Sign and combine multisig transactions
+//! - PSBT integration for hardware wallet interoperability
+//! - MuSig2 key aggregation for Schnorr multisig
 //! - Shamir Secret Sharing for key backup
 //!
 //! ## Quick Start
@@ -34,6 +36,52 @@
 //! println!("P2SH-P2WSH address: {}", wallet.address_p2sh_p2wsh);
 //! ```
 //!
+//! ## PSBT Integration
+//!
+//! ```rust
+//! use rustywallet_multisig::{MultisigWallet, MultisigPsbtBuilder, Network};
+//! use rustywallet_keys::prelude::PrivateKey;
+//!
+//! let key1 = PrivateKey::random();
+//! let key2 = PrivateKey::random();
+//! let pubkeys = vec![
+//!     key1.public_key().to_compressed(),
+//!     key2.public_key().to_compressed(),
+//! ];
+//!
+//! let wallet = MultisigWallet::from_pubkeys(2, pubkeys, Network::Mainnet).unwrap();
+//! let mut builder = MultisigPsbtBuilder::new(wallet, 1);
+//!
+//! // Each party signs
+//! let sighash = [0u8; 32]; // Compute actual sighash
+//! builder.sign_input(0, &sighash, &key1).unwrap();
+//! builder.sign_input(0, &sighash, &key2).unwrap();
+//!
+//! // Build final witness
+//! let witness = builder.build_witness(0).unwrap();
+//! ```
+//!
+//! ## MuSig2 Key Aggregation
+//!
+//! ```rust
+//! use rustywallet_multisig::{MuSigKeyAgg, musig_to_p2tr_address, Network};
+//! use rustywallet_keys::prelude::PrivateKey;
+//!
+//! let key1 = PrivateKey::random();
+//! let key2 = PrivateKey::random();
+//! let pubkeys = vec![
+//!     key1.public_key().to_compressed(),
+//!     key2.public_key().to_compressed(),
+//! ];
+//!
+//! // Aggregate keys for n-of-n Schnorr multisig
+//! let key_agg = MuSigKeyAgg::new(pubkeys).unwrap();
+//!
+//! // Get P2TR address
+//! let address = musig_to_p2tr_address(&key_agg, Network::Mainnet).unwrap();
+//! println!("MuSig P2TR address: {}", address);
+//! ```
+//!
 //! ## Shamir Secret Sharing
 //!
 //! ```rust
@@ -47,25 +95,6 @@
 //! let recovered = combine_shares(&shares[0..3]).unwrap();
 //! assert_eq!(recovered, secret);
 //! ```
-//!
-//! ## Signing Multisig Transactions
-//!
-//! ```rust,ignore
-//! use rustywallet_multisig::{sign_p2sh_multisig, combine_signatures};
-//!
-//! // Each party signs with their key
-//! let sig1 = sign_p2sh_multisig(&sighash, &key1, &wallet).unwrap();
-//! let sig2 = sign_p2sh_multisig(&sighash, &key2, &wallet).unwrap();
-//!
-//! // Combine signatures
-//! let combined = combine_signatures(&[sig1, sig2], &wallet).unwrap();
-//!
-//! // Build scriptSig for P2SH
-//! let script_sig = combined.build_script_sig();
-//!
-//! // Or build witness for P2WSH
-//! let witness = combined.build_witness();
-//! ```
 
 pub mod error;
 pub mod config;
@@ -74,6 +103,8 @@ pub mod address;
 pub mod signer;
 pub mod combiner;
 pub mod shamir;
+pub mod psbt;
+pub mod musig;
 
 pub use error::{MultisigError, Result};
 pub use config::MultisigConfig;
@@ -82,6 +113,8 @@ pub use script::{build_multisig_script, parse_multisig_script};
 pub use signer::{sign_p2sh_multisig, sign_p2wsh_multisig, PartialSignature};
 pub use combiner::{combine_signatures, CombinedSignatures};
 pub use shamir::{split_secret, combine_shares, ShamirShare};
+pub use psbt::{MultisigPsbtBuilder, PsbtPartialSig};
+pub use musig::{MuSigKeyAgg, musig_to_p2tr_address};
 
 /// Prelude module for convenient imports.
 pub mod prelude {
@@ -91,5 +124,7 @@ pub mod prelude {
         sign_p2sh_multisig, sign_p2wsh_multisig,
         combine_signatures, CombinedSignatures,
         split_secret, combine_shares, ShamirShare,
+        MultisigPsbtBuilder, PsbtPartialSig,
+        MuSigKeyAgg, musig_to_p2tr_address,
     };
 }
