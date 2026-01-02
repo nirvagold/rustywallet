@@ -9,6 +9,10 @@ Electrum protocol client for Bitcoin balance checking and UTXO fetching.
 - **UTXO listing** - Get unspent outputs for transaction building
 - **Transaction operations** - Get raw transactions and broadcast signed ones
 - **TLS support** - Secure connections to Electrum servers
+- **Certificate pinning** - Enhanced security with SSL certificate pinning
+- **Server discovery** - DNS-based server discovery with latency testing
+- **Connection pooling** - Efficient connection management for high throughput
+- **Real-time subscriptions** - Address and header change notifications
 - **No rate limits** - Unlike public APIs, Electrum has no rate limiting
 
 ## Quick Start
@@ -35,6 +39,94 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     Ok(())
 }
+```
+
+## Server Discovery
+
+Find the best server automatically:
+
+```rust
+use rustywallet_electrum::discovery::ServerDiscovery;
+
+let discovery = ServerDiscovery::new();
+let best = discovery.best_server().await?;
+println!("Best server: {} ({}ms)", best.hostname, best.latency_ms.unwrap_or(0));
+
+let client = ElectrumClient::with_config(best.to_ssl_config()).await?;
+```
+
+## Connection Pooling
+
+Manage multiple connections efficiently:
+
+```rust
+use rustywallet_electrum::{ClientConfig, pool::{ConnectionPool, PoolConfig}};
+
+let config = ClientConfig::ssl("electrum.blockstream.info");
+let pool = ConnectionPool::new(config, PoolConfig::default());
+pool.initialize().await?;
+
+// Acquire connection from pool
+let client = pool.acquire().await?;
+let balance = client.get_balance("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa").await?;
+// Connection automatically returned when dropped
+```
+
+## Batch Requests
+
+Efficiently query multiple addresses:
+
+```rust
+use rustywallet_electrum::BatchRequest;
+
+let response = BatchRequest::new(&client)
+    .balances(["addr1", "addr2", "addr3"])
+    .utxos(["addr1", "addr2"])
+    .execute()
+    .await?;
+
+println!("Total confirmed: {} sats", response.total_confirmed());
+println!("Funded addresses: {:?}", response.funded_addresses());
+```
+
+## Real-time Subscriptions
+
+Monitor addresses for changes:
+
+```rust
+use rustywallet_electrum::{SubscriptionClient, ClientConfig};
+
+let client = SubscriptionClient::new(ClientConfig::default()).await?;
+
+// Subscribe to address
+let status = client.subscribe_address("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa").await?;
+
+// Subscribe to new blocks
+let header = client.subscribe_headers().await?;
+println!("Current height: {}", header.height);
+
+// Listen for events
+let mut rx = client.subscribe();
+while let Ok(event) = rx.recv().await {
+    match event {
+        SubscriptionEvent::AddressStatus(e) => println!("Address {} changed", e.address),
+        SubscriptionEvent::BlockHeader(e) => println!("New block: {}", e.height),
+        _ => {}
+    }
+}
+```
+
+## Certificate Pinning
+
+Enhanced security with certificate pinning:
+
+```rust
+use rustywallet_electrum::pinning::{CertFingerprint, PinningConfigBuilder};
+
+let tls_config = PinningConfigBuilder::new()
+    .pin_hex("electrum.blockstream.info", "abc123...")?
+    .allow_unpinned(false)
+    .build();
 ```
 
 ## Address Support
@@ -86,6 +178,25 @@ Built-in list of public Electrum servers:
 - `ping()` - Check connection
 - `get_block_height()` - Get current block height
 - `estimate_fee(blocks)` - Estimate fee rate
+
+### Discovery (v0.2)
+- `ServerDiscovery::new()` - Create discovery service
+- `best_server()` - Find lowest latency server
+- `reachable_servers()` - Get all reachable servers
+
+### Pooling (v0.2)
+- `ConnectionPool::new()` - Create connection pool
+- `acquire()` - Get connection from pool
+- `stats()` - Get pool statistics
+
+### Subscriptions (v0.2)
+- `subscribe_address(address)` - Subscribe to address changes
+- `subscribe_headers()` - Subscribe to new blocks
+- `subscribe()` - Get event receiver
+
+### Batch (v0.2)
+- `BatchRequest::new()` - Create batch builder
+- `GapLimitScanner` - Scan with gap limit
 
 ## License
 

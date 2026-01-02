@@ -1750,7 +1750,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-electrum"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bitcoin",
  "hex",
@@ -1819,14 +1819,6 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "zeroize",
-]
-
-[[package]]
-name = "rustywallet-hd-demo"
-version = "0.1.0"
-dependencies = [
- "hex",
- "rustywallet-hd",
 ]
 
 [[package]]

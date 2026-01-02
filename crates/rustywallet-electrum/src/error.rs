@@ -58,6 +58,22 @@ pub enum ElectrumError {
     /// Invalid scripthash
     #[error("Invalid scripthash: {0}")]
     InvalidScripthash(String),
+
+    /// Certificate pinning failed
+    #[error("Certificate pinning failed: {0}")]
+    CertificatePinningFailed(String),
+
+    /// No servers available
+    #[error("No servers available")]
+    NoServersAvailable,
+
+    /// Pool exhausted
+    #[error("Connection pool exhausted")]
+    PoolExhausted,
+
+    /// Subscription error
+    #[error("Subscription error: {0}")]
+    SubscriptionError(String),
 }
 
 /// Result type alias for Electrum operations.

@@ -108,12 +108,12 @@ Wallet recovery tools
 - [ ] Additional coin selection: Branch & Bound, Random
 - [ ] Transaction batching utilities
 
-### rustywallet-electrum v0.2
-- [ ] SSL certificate pinning
-- [ ] Server discovery (DNS seeds)
-- [ ] Connection pooling
-- [ ] Real-time subscriptions (address, headers)
-- [ ] Batch request optimization
+### rustywallet-electrum v0.2 ✔️ Done
+- [x] SSL certificate pinning
+- [x] Server discovery (DNS seeds)
+- [x] Connection pooling
+- [x] Real-time subscriptions (address, headers)
+- [x] Batch request optimization
 
 ### rustywallet-mempool v0.2
 - [ ] WebSocket support for real-time data

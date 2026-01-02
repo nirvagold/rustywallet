@@ -12,6 +12,10 @@
 //! - **UTXO listing** - Get unspent outputs for transaction building
 //! - **Transaction operations** - Get raw transactions and broadcast signed ones
 //! - **TLS support** - Secure connections to Electrum servers
+//! - **Certificate pinning** - Enhanced security with SSL certificate pinning
+//! - **Server discovery** - DNS-based server discovery
+//! - **Connection pooling** - Efficient connection management
+//! - **Real-time subscriptions** - Address and header change notifications
 //!
 //! ## Quick Start
 //!
@@ -42,6 +46,38 @@
 //!         println!("{}: {} sats", addr, bal.confirmed);
 //!     }
 //!     
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ## Server Discovery
+//!
+//! ```no_run
+//! use rustywallet_electrum::discovery::ServerDiscovery;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let discovery = ServerDiscovery::new();
+//!     let best = discovery.best_server().await?;
+//!     println!("Best server: {} ({}ms)", best.hostname, best.latency_ms.unwrap_or(0));
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ## Connection Pooling
+//!
+//! ```no_run
+//! use rustywallet_electrum::{ClientConfig, pool::{ConnectionPool, PoolConfig}};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let config = ClientConfig::ssl("electrum.blockstream.info");
+//!     let pool = ConnectionPool::new(config, PoolConfig::default());
+//!     pool.initialize().await?;
+//!     
+//!     let client = pool.acquire().await?;
+//!     let balance = client.get_balance("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa").await?;
+//!     // Connection automatically returned to pool when dropped
 //!     Ok(())
 //! }
 //! ```
@@ -83,9 +119,14 @@
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
 
+pub mod batch;
 pub mod client;
+pub mod discovery;
 pub mod error;
+pub mod pinning;
+pub mod pool;
 pub mod scripthash;
+pub mod subscription;
 pub mod transport;
 pub mod types;
 
@@ -94,3 +135,13 @@ pub use client::ElectrumClient;
 pub use error::{ElectrumError, Result};
 pub use scripthash::{address_to_scripthash, addresses_to_scripthashes};
 pub use types::{Balance, ClientConfig, ServerVersion, TxHistory, Utxo, DEFAULT_SERVERS};
+
+// New v0.2 re-exports
+pub use batch::{BatchRequest, BatchResponse, GapLimitScanner, ParallelBatchExecutor};
+pub use discovery::{DiscoveredServer, ServerDiscovery, DNS_SEEDS};
+pub use pinning::{CertFingerprint, CertPinStore, PinningConfigBuilder};
+pub use pool::{ConnectionPool, PoolConfig, PoolStats, PooledClient};
+pub use subscription::{
+    AddressStatusEvent, AddressWatcher, BlockHeaderEvent, ConnectionStatus,
+    SubscriptionClient, SubscriptionEvent, SubscriptionManager,
+};
