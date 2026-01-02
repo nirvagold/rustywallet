@@ -40,7 +40,7 @@
 
 ## 🔧 Phase 3: Advanced Features (v2) 📋 PLANNED
 
-### 18. rustywallet-psbt 🔜 Next
+### 18. rustywallet-psbt ✔️ Done
 PSBT (BIP174) for hardware wallet interoperability
 
 **Features:**
@@ -55,7 +55,7 @@ PSBT (BIP174) for hardware wallet interoperability
 
 ---
 
-### 19. rustywallet-taproot 📋 Planned
+### 19. rustywallet-taproot 🔜 Next
 Full Taproot support (BIP340/341/342)
 
 **Features:**

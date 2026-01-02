@@ -1876,11 +1876,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustywallet-multisig-demo"
+name = "rustywallet-psbt"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
+ "hex",
+ "proptest",
+ "ripemd",
+ "rustywallet-address",
  "rustywallet-keys",
- "rustywallet-multisig",
+ "rustywallet-signer",
+ "rustywallet-tx",
+ "secp256k1",
+ "sha2",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "rustywallet-psbt-demo"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "rustywallet-keys",
+ "rustywallet-psbt",
 ]
 
 [[package]]
