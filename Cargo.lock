@@ -76,6 +76,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
+name = "async-trait"
+version = "0.1.89"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1738,14 +1749,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustywallet-descriptor-demo"
-version = "0.1.0"
-dependencies = [
- "rustywallet-address",
- "rustywallet-descriptor",
-]
-
-[[package]]
 name = "rustywallet-electrum"
 version = "0.1.0"
 dependencies = [
@@ -1923,6 +1926,31 @@ dependencies = [
  "hex",
  "rustywallet-keys",
  "rustywallet-psbt",
+]
+
+[[package]]
+name = "rustywallet-recovery"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "proptest",
+ "rustywallet-address",
+ "rustywallet-electrum",
+ "rustywallet-hd",
+ "rustywallet-keys",
+ "rustywallet-mnemonic",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
+name = "rustywallet-recovery-demo"
+version = "0.1.0"
+dependencies = [
+ "rustywallet-recovery",
+ "tokio",
 ]
 
 [[package]]

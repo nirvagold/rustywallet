@@ -85,7 +85,7 @@ Output descriptors (BIP380-386)
 
 ---
 
-### 21. rustywallet-recovery 🔜 Next
+### 21. rustywallet-recovery ✔️ Done
 Wallet recovery tools
 
 **Features:**
