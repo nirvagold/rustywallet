@@ -70,7 +70,7 @@ Full Taproot support (BIP340/341/342)
 
 ---
 
-### 20. rustywallet-descriptor 🔜 Next
+### 20. rustywallet-descriptor ✔️ Done
 Output descriptors (BIP380-386)
 
 **Features:**
@@ -85,7 +85,7 @@ Output descriptors (BIP380-386)
 
 ---
 
-### 21. rustywallet-recovery 📋 Planned
+### 21. rustywallet-recovery 🔜 Next
 Wallet recovery tools
 
 **Features:**
@@ -263,8 +263,8 @@ CoinJoin utilities
 ### v2.x (Planned)
 18. ✔️ rustywallet-psbt
 19. ✔️ rustywallet-taproot
-20. 🔜 rustywallet-descriptor
-21. 📋 rustywallet-recovery
+20. ✔️ rustywallet-descriptor
+21. 🔜 rustywallet-recovery
 22. 📋 Crate improvements (v0.2 releases)
 
 ### v3.x (Planned)

@@ -1722,6 +1722,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-descriptor"
+version = "0.1.0"
+dependencies = [
+ "bech32",
+ "bs58",
+ "hex",
+ "proptest",
+ "ripemd",
+ "rustywallet-address",
+ "rustywallet-hd",
+ "rustywallet-keys",
+ "sha2",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "rustywallet-descriptor-demo"
+version = "0.1.0"
+dependencies = [
+ "rustywallet-address",
+ "rustywallet-descriptor",
+]
+
+[[package]]
 name = "rustywallet-electrum"
 version = "0.1.0"
 dependencies = [
@@ -1928,16 +1952,6 @@ dependencies = [
  "secp256k1",
  "sha2",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "rustywallet-taproot-demo"
-version = "0.1.0"
-dependencies = [
- "hex",
- "rand 0.8.5",
- "rustywallet-taproot",
- "secp256k1",
 ]
 
 [[package]]
