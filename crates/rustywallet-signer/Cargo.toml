@@ -1,17 +1,18 @@
 [package]
 name = "rustywallet-signer"
-version = "0.1.2"
+version = "0.2.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-description = "ECDSA message signing and verification for Bitcoin and Ethereum"
-keywords = ["crypto", "wallet", "bitcoin", "ethereum", "signature"]
+description = "ECDSA and Schnorr message signing and verification for Bitcoin and Ethereum"
+keywords = ["crypto", "wallet", "bitcoin", "ethereum", "signature", "schnorr"]
 categories = ["cryptography", "authentication"]
 readme = "README.md"
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
+rustywallet-taproot = { path = "../rustywallet-taproot", version = "0.1" }
 secp256k1 = { version = "0.29", features = ["rand", "recovery"] }
 sha2 = "0.10"
 tiny-keccak = { version = "2.0", features = ["keccak"] }

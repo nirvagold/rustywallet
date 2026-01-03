@@ -1,17 +1,53 @@
 # rustywallet-batch
 
-High-performance batch key generation for cryptocurrency wallets.
+High-performance batch key and address generation for cryptocurrency wallets.
 
 ## Features
 
-- **Batch Generation**: Generate millions of keys efficiently
+- **Batch Generation**: Generate millions of keys and addresses efficiently
+- **Address Generation**: Support for P2PKH, P2WPKH, and P2TR address types
 - **Parallel Processing**: Utilize all CPU cores with rayon
-- **Memory Streaming**: Process unlimited keys without memory exhaustion
+- **Memory Streaming**: Process unlimited keys/addresses without memory exhaustion
 - **Incremental Scanning**: Scan key ranges using EC point addition
 - **SIMD Optimization**: Platform-aware SIMD for faster processing
 - **Memory-Mapped Output**: Direct file writes without buffering overhead
 - **Resume Capability**: Checkpoint and resume long-running operations
 - **Configurable**: Flexible configuration for different use cases
+
+## Batch Address Generation
+
+```rust
+use rustywallet_batch::address::{BatchAddressGenerator, BatchAddressType};
+use rustywallet_address::Network;
+
+// Generate 1000 P2WPKH addresses in parallel
+let generator = BatchAddressGenerator::new(BatchAddressType::P2WPKH, Network::BitcoinMainnet);
+let addresses = generator.generate_vec(1000).unwrap();
+
+for (key, addr) in &addresses {
+    println!("{}: {}", key.to_hex(), addr);
+}
+```
+
+### Supported Address Types
+
+- **P2PKH** - Legacy addresses (1...)
+- **P2WPKH** - SegWit addresses (bc1q...)
+- **P2TR** - Taproot addresses (bc1p...)
+
+### Streaming Address Generation
+
+```rust
+use rustywallet_batch::address::{BatchAddressGenerator, BatchAddressType};
+use rustywallet_address::Network;
+
+// Stream 1 million addresses without storing all in memory
+let generator = BatchAddressGenerator::new(BatchAddressType::P2TR, Network::BitcoinMainnet);
+
+for (key, addr) in generator.generate_stream(1_000_000).take(100) {
+    println!("{}", addr);
+}
+```
 
 ## Quick Start
 

@@ -1,8 +1,8 @@
 [package]
 name = "rustywallet-batch"
-description = "High-performance batch key generation for cryptocurrency wallets"
+description = "High-performance batch key and address generation for cryptocurrency wallets"
 readme = "README.md"
-version = "0.2.0"
+version = "0.3.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -12,6 +12,7 @@ categories = ["cryptography", "concurrency"]
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
+rustywallet-address = { path = "../rustywallet-address", version = "0.2" }
 secp256k1.workspace = true
 rand.workspace = true
 thiserror.workspace = true

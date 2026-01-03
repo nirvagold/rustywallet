@@ -1,20 +1,39 @@
 //! # rustywallet-batch
 //!
-//! High-performance batch key generation for cryptocurrency wallets.
+//! High-performance batch key and address generation for cryptocurrency wallets.
 //!
 //! This crate provides efficient APIs for generating large batches of private keys
-//! with parallel processing, SIMD optimization, and memory-efficient streaming.
+//! and addresses with parallel processing, SIMD optimization, and memory-efficient streaming.
 //!
 //! ## Features
 //!
-//! - **Batch Generation**: Generate millions of keys efficiently
+//! - **Batch Generation**: Generate millions of keys and addresses efficiently
+//! - **Address Generation**: Support for P2PKH, P2WPKH, and P2TR address types
 //! - **Parallel Processing**: Utilize all CPU cores with rayon
-//! - **Memory Streaming**: Process unlimited keys without memory exhaustion
+//! - **Memory Streaming**: Process unlimited keys/addresses without memory exhaustion
 //! - **Incremental Scanning**: Scan key ranges using EC point addition
 //! - **SIMD Optimization**: Use SIMD instructions for faster processing
 //! - **Memory-Mapped Output**: Write directly to files without buffering
 //! - **Resume Capability**: Checkpoint and resume long-running operations
 //! - **Configurable**: Flexible configuration for different use cases
+//!
+//! ## Batch Address Generation
+//!
+//! ```rust
+//! use rustywallet_batch::address::{BatchAddressGenerator, BatchAddressType};
+//! use rustywallet_address::Network;
+//!
+//! // Generate 1000 P2WPKH addresses in parallel
+//! let generator = BatchAddressGenerator::new(BatchAddressType::P2WPKH, Network::BitcoinMainnet);
+//! let addresses = generator.generate_vec(1000).unwrap();
+//!
+//! println!("Generated {} addresses", addresses.len());
+//!
+//! // Stream addresses for memory efficiency
+//! for (key, addr) in generator.generate_stream(1_000_000).take(100) {
+//!     println!("{}: {}", key.to_hex(), addr);
+//! }
+//! ```
 //!
 //! ## Quick Start
 //!
@@ -130,6 +149,7 @@
 //! let config = BatchConfig::memory_efficient();
 //! ```
 
+pub mod address;
 pub mod checkpoint;
 pub mod config;
 pub mod error;
@@ -145,6 +165,7 @@ pub mod stream;
 mod tests;
 
 // Re-export main types at crate root
+pub use address::{AddressStream, BatchAddressGenerator, BatchAddressType};
 pub use checkpoint::{Checkpoint, GenerationMode, ResumableBatchGenerator};
 pub use config::BatchConfig;
 pub use error::BatchError;

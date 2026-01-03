@@ -5,11 +5,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://github.com/rustywallet/rustywallet-signer/workflows/CI/badge.svg)](https://github.com/rustywallet/rustywallet-signer/actions)
 
-ECDSA message signing and verification for Bitcoin and Ethereum using secp256k1.
+ECDSA and Schnorr message signing and verification for Bitcoin and Ethereum using secp256k1.
 
 ## Features
 
 - **Cross-platform compatibility** - Works on all major platforms
+- **BIP340 Schnorr signatures** - Modern Taproot-compatible signing
 - **Bitcoin message signing** - BIP-137 compatible message signatures
 - **Ethereum personal_sign** - EIP-191 compatible signatures for web3
 - **Recoverable signatures** - Extract public keys from signatures
@@ -24,11 +25,13 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rustywallet-signer = "0.1"
+rustywallet-signer = "0.2"
 rustywallet-keys = "0.1"
 ```
 
 ## Quick Start
+
+### ECDSA Signing
 
 ```rust
 use rustywallet_keys::private_key::PrivateKey;
@@ -46,6 +49,73 @@ let signature = sign(&private_key, &hash)?;
 
 // Verify the signature
 assert!(verify(&public_key, &hash, &signature));
+```
+
+### Schnorr Signing (BIP340)
+
+```rust
+use rustywallet_keys::private_key::PrivateKey;
+use rustywallet_signer::schnorr::{SchnorrSigner, SchnorrVerifier};
+use sha2::{Sha256, Digest};
+
+// Generate a private key
+let private_key = PrivateKey::random();
+
+// Sign a message hash with Schnorr
+let message = b"Hello, Taproot!";
+let hash: [u8; 32] = Sha256::digest(message).into();
+let signature = private_key.sign_schnorr(&hash)?;
+
+// Get x-only public key and verify
+let xonly_pubkey = private_key.x_only_public_key();
+assert!(xonly_pubkey.verify_schnorr(&signature, &hash));
+```
+
+## Schnorr Signatures (BIP340)
+
+Schnorr signatures are used in Bitcoin's Taproot upgrade and provide several advantages:
+- Smaller signatures (64 bytes vs 71-72 for ECDSA)
+- Linear signature aggregation (enables MuSig2)
+- Provable security under standard assumptions
+
+### Using the SchnorrSigner Trait
+
+```rust
+use rustywallet_keys::private_key::PrivateKey;
+use rustywallet_signer::schnorr::{SchnorrSigner, SchnorrVerifier};
+use sha2::{Sha256, Digest};
+
+let key = PrivateKey::random();
+let hash: [u8; 32] = Sha256::digest(b"message").into();
+
+// Sign using the trait
+let signature = key.sign_schnorr(&hash)?;
+
+// Sign with auxiliary randomness for extra security
+let aux_rand = [0x42u8; 32];
+let signature_with_aux = key.sign_schnorr_with_aux(&hash, &aux_rand)?;
+
+// Verify using the trait
+let xonly = key.x_only_public_key();
+assert!(xonly.verify_schnorr(&signature, &hash));
+```
+
+### Using Convenience Functions
+
+```rust
+use rustywallet_keys::private_key::PrivateKey;
+use rustywallet_signer::schnorr::{sign_schnorr, verify_schnorr, SchnorrSigner};
+use sha2::{Sha256, Digest};
+
+let key = PrivateKey::random();
+let hash: [u8; 32] = Sha256::digest(b"message").into();
+
+// Sign using convenience function
+let signature = sign_schnorr(&key, &hash)?;
+
+// Verify using convenience function
+let xonly = key.x_only_public_key();
+assert!(verify_schnorr(&xonly, &signature, &hash));
 ```
 
 ## Message Signing
@@ -191,6 +261,26 @@ pub fn verify(public_key: &PublicKey, message_hash: &[u8; 32], signature: &Signa
 pub fn recover_public_key(signature: &RecoverableSignature, message_hash: &[u8; 32]) -> Result<PublicKey>;
 ```
 
+### Schnorr Module (BIP340)
+
+```rust
+// SchnorrSigner trait - implemented for PrivateKey
+pub trait SchnorrSigner {
+    fn sign_schnorr(&self, message_hash: &[u8; 32]) -> Result<SchnorrSignature>;
+    fn sign_schnorr_with_aux(&self, message_hash: &[u8; 32], aux_rand: &[u8; 32]) -> Result<SchnorrSignature>;
+    fn x_only_public_key(&self) -> XOnlyPublicKey;
+}
+
+// SchnorrVerifier trait - implemented for XOnlyPublicKey
+pub trait SchnorrVerifier {
+    fn verify_schnorr(&self, signature: &SchnorrSignature, message_hash: &[u8; 32]) -> bool;
+}
+
+// Convenience functions
+pub fn sign_schnorr(private_key: &PrivateKey, message_hash: &[u8; 32]) -> Result<SchnorrSignature>;
+pub fn verify_schnorr(pubkey: &XOnlyPublicKey, signature: &SchnorrSignature, message_hash: &[u8; 32]) -> bool;
+```
+
 ### Bitcoin Module
 
 ```rust
@@ -237,6 +327,12 @@ pub struct RecoverableSignature { /* ... */ }
 
 // Ethereum-specific signature with v, r, s components
 pub struct EthereumSignature { /* ... */ }
+
+// BIP340 Schnorr signature (64 bytes)
+pub struct SchnorrSignature { /* ... */ }
+
+// X-only public key for Schnorr (32 bytes)
+pub struct XOnlyPublicKey { /* ... */ }
 ```
 
 ## Error Handling

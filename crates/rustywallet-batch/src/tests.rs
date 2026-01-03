@@ -484,3 +484,145 @@ fn property_progress_accuracy() {
         assert_eq!(key.to_hex(), expected);
     }
 }
+
+
+// **Feature: ecosystem-upgrade-v2, Property 2: Batch Address Consistency**
+// **Validates: Requirements 2.5**
+// For any generated key-address pair from BatchAddressGenerator,
+// deriving the address manually from the key SHALL produce the same address.
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+    
+    #[test]
+    fn property_batch_address_consistency_p2pkh(batch_size in 1usize..50) {
+        use crate::address::{BatchAddressGenerator, BatchAddressType};
+        use rustywallet_address::{Network, P2PKHAddress};
+        
+        let generator = BatchAddressGenerator::new(BatchAddressType::P2PKH, Network::BitcoinMainnet);
+        let addresses = generator.generate_vec(batch_size).unwrap();
+        
+        for (key, addr) in addresses {
+            // Manually derive address from key
+            let pubkey = key.public_key();
+            let derived_addr = P2PKHAddress::from_public_key(&pubkey, Network::BitcoinMainnet)
+                .unwrap()
+                .to_string();
+            
+            prop_assert_eq!(
+                addr, 
+                derived_addr, 
+                "Batch-generated P2PKH address should match manually derived address"
+            );
+        }
+    }
+    
+    #[test]
+    fn property_batch_address_consistency_p2wpkh(batch_size in 1usize..50) {
+        use crate::address::{BatchAddressGenerator, BatchAddressType};
+        use rustywallet_address::{Network, P2WPKHAddress};
+        
+        let generator = BatchAddressGenerator::new(BatchAddressType::P2WPKH, Network::BitcoinMainnet);
+        let addresses = generator.generate_vec(batch_size).unwrap();
+        
+        for (key, addr) in addresses {
+            // Manually derive address from key
+            let pubkey = key.public_key();
+            let derived_addr = P2WPKHAddress::from_public_key(&pubkey, Network::BitcoinMainnet)
+                .unwrap()
+                .to_string();
+            
+            prop_assert_eq!(
+                addr, 
+                derived_addr, 
+                "Batch-generated P2WPKH address should match manually derived address"
+            );
+        }
+    }
+    
+    #[test]
+    fn property_batch_address_consistency_p2tr(batch_size in 1usize..50) {
+        use crate::address::{BatchAddressGenerator, BatchAddressType};
+        use rustywallet_address::{Network, P2TRAddress};
+        
+        let generator = BatchAddressGenerator::new(BatchAddressType::P2TR, Network::BitcoinMainnet);
+        let addresses = generator.generate_vec(batch_size).unwrap();
+        
+        for (key, addr) in addresses {
+            // Manually derive address from key
+            let pubkey = key.public_key();
+            let derived_addr = P2TRAddress::from_public_key(&pubkey, Network::BitcoinMainnet)
+                .unwrap()
+                .to_string();
+            
+            prop_assert_eq!(
+                addr, 
+                derived_addr, 
+                "Batch-generated P2TR address should match manually derived address"
+            );
+        }
+    }
+    
+    #[test]
+    fn property_batch_address_consistency_stream(batch_size in 1usize..50) {
+        use crate::address::{BatchAddressGenerator, BatchAddressType};
+        use rustywallet_address::{Network, P2WPKHAddress};
+        
+        let generator = BatchAddressGenerator::new(BatchAddressType::P2WPKH, Network::BitcoinMainnet);
+        let stream = generator.generate_stream(batch_size);
+        
+        for (key, addr) in stream {
+            // Manually derive address from key
+            let pubkey = key.public_key();
+            let derived_addr = P2WPKHAddress::from_public_key(&pubkey, Network::BitcoinMainnet)
+                .unwrap()
+                .to_string();
+            
+            prop_assert_eq!(
+                addr, 
+                derived_addr, 
+                "Streamed address should match manually derived address"
+            );
+        }
+    }
+}
+
+// **Feature: ecosystem-upgrade-v2, Property 2: Batch Address Consistency (Testnet)**
+// **Validates: Requirements 2.5**
+// Verify consistency for testnet addresses as well.
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+    
+    #[test]
+    fn property_batch_address_consistency_testnet(batch_size in 1usize..30) {
+        use crate::address::{BatchAddressGenerator, BatchAddressType};
+        use rustywallet_address::{Network, P2WPKHAddress, P2TRAddress};
+        
+        // Test P2WPKH testnet
+        let generator = BatchAddressGenerator::new(BatchAddressType::P2WPKH, Network::BitcoinTestnet);
+        let addresses = generator.generate_vec(batch_size).unwrap();
+        
+        for (key, addr) in addresses {
+            let pubkey = key.public_key();
+            let derived_addr = P2WPKHAddress::from_public_key(&pubkey, Network::BitcoinTestnet)
+                .unwrap()
+                .to_string();
+            
+            prop_assert!(addr.starts_with("tb1q"), "Testnet P2WPKH should start with tb1q");
+            prop_assert_eq!(addr, derived_addr);
+        }
+        
+        // Test P2TR testnet
+        let generator = BatchAddressGenerator::new(BatchAddressType::P2TR, Network::BitcoinTestnet);
+        let addresses = generator.generate_vec(batch_size).unwrap();
+        
+        for (key, addr) in addresses {
+            let pubkey = key.public_key();
+            let derived_addr = P2TRAddress::from_public_key(&pubkey, Network::BitcoinTestnet)
+                .unwrap()
+                .to_string();
+            
+            prop_assert!(addr.starts_with("tb1p"), "Testnet P2TR should start with tb1p");
+            prop_assert_eq!(addr, derived_addr);
+        }
+    }
+}

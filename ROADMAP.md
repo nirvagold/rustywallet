@@ -101,6 +101,32 @@ Wallet recovery tools
 
 ## 🔄 Phase 3.5: Crate Improvements (v2.x)
 
+### Ecosystem Upgrade v2 Progress
+
+| Batch | Status | Crates |
+|-------|--------|--------|
+| Batch 1: Foundation | ✔️ Complete | rustywallet-signer v0.2, rustywallet-batch v0.3 |
+| Batch 2: TX Integration | 🔜 Next | rustywallet-tx v0.3, rustywallet-psbt v0.2 |
+| Batch 3: Privacy & Recovery | 📋 Planned | rustywallet-electrum v0.3, rustywallet-recovery v0.2 |
+| Batch 4: Descriptor | 📋 Planned | rustywallet-descriptor v0.2, rustywallet-hd v0.3 |
+| Batch 5: Feature Completion | 📋 Planned | rustywallet-multisig v0.3, rustywallet-coinjoin v0.2 |
+| Batch 6: Polish | 📋 Planned | 8 crates (mnemonic, import, export, vanity, checker, bloom, lightning, address) |
+
+#### Batch 1 Completed Features:
+- **rustywallet-signer v0.2**: Schnorr signing integration (BIP340)
+  - SchnorrSigner trait with sign_schnorr() method
+  - SchnorrVerifier trait with verify_schnorr() method
+  - Re-exports from rustywallet-taproot
+  - Property test: Schnorr sign-verify round-trip ✔️
+
+- **rustywallet-batch v0.3**: Address generation
+  - BatchAddressType enum (P2PKH, P2WPKH, P2TR)
+  - BatchAddressGenerator struct
+  - Parallel address generation with streaming output
+  - Property test: Batch address consistency ✔️
+
+---
+
 ### rustywallet-tx v0.2 ✔️ Done
 - [x] RBF (Replace-By-Fee) - fee bumping
 - [x] Taproot signing (P2TR key path)

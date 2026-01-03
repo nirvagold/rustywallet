@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-01-03
+
+### Added
+- **BIP340 Schnorr signature support** - Full integration with rustywallet-taproot
+- `SchnorrSigner` trait with `sign_schnorr()` and `sign_schnorr_with_aux()` methods
+- `SchnorrVerifier` trait with `verify_schnorr()` method
+- Implementation of `SchnorrSigner` for `PrivateKey`
+- Implementation of `SchnorrVerifier` for `XOnlyPublicKey`
+- Convenience functions `sign_schnorr()` and `verify_schnorr()`
+- Re-export of `SchnorrSignature` and `XOnlyPublicKey` from rustywallet-taproot
+- Property-based tests for Schnorr sign-verify round-trip
+- Updated prelude module with Schnorr types
+
+### Changed
+- Updated crate description to include Schnorr signing
+- Added rustywallet-taproot as a dependency
+
+## [0.1.2] - 2024-03-15
+
+### Fixed
+- Minor documentation improvements
+
 ## [0.1.0] - 2024-01-15
 
 ### Added
@@ -35,5 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uses audited secp256k1 cryptographic library
 - RFC 6979 deterministic nonce generation prevents nonce reuse vulnerabilities
 
-[Unreleased]: https://github.com/rustywallet/rustywallet-signer/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/rustywallet/rustywallet-signer/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/rustywallet/rustywallet-signer/compare/v0.1.2...v0.2.0
+[0.1.2]: https://github.com/rustywallet/rustywallet-signer/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/rustywallet/rustywallet-signer/releases/tag/v0.1.0

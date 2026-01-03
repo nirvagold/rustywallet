@@ -1,16 +1,17 @@
 //! # rustywallet-signer
 //!
-//! ECDSA message signing and verification for Bitcoin and Ethereum.
+//! ECDSA and Schnorr message signing and verification for Bitcoin and Ethereum.
 //!
 //! ## Features
 //!
 //! - Sign arbitrary messages with ECDSA secp256k1
+//! - Sign messages with BIP340 Schnorr signatures
 //! - Verify signatures against public keys
 //! - Bitcoin message signing (BIP-137 compatible)
 //! - Ethereum personal_sign (EIP-191)
 //! - Recoverable signatures for public key recovery
 //!
-//! ## Quick Start
+//! ## Quick Start (ECDSA)
 //!
 //! ```rust
 //! use rustywallet_keys::private_key::PrivateKey;
@@ -27,6 +28,25 @@
 //!
 //! // Verify the signature
 //! assert!(verify(&pubkey, &hash, &signature));
+//! ```
+//!
+//! ## Schnorr Signing (BIP340)
+//!
+//! ```rust
+//! use rustywallet_keys::private_key::PrivateKey;
+//! use rustywallet_signer::schnorr::{SchnorrSigner, SchnorrVerifier};
+//! use sha2::{Sha256, Digest};
+//!
+//! // Generate a key
+//! let key = PrivateKey::random();
+//!
+//! // Sign a message hash with Schnorr
+//! let hash: [u8; 32] = Sha256::digest(b"hello world").into();
+//! let signature = key.sign_schnorr(&hash).unwrap();
+//!
+//! // Get x-only public key and verify
+//! let xonly = key.x_only_public_key();
+//! assert!(xonly.verify_schnorr(&signature, &hash));
 //! ```
 //!
 //! ## Bitcoin Message Signing
@@ -59,6 +79,7 @@ pub mod error;
 pub mod ethereum;
 pub mod prelude;
 pub mod recovery;
+pub mod schnorr;
 pub mod signature;
 pub mod signer;
 pub mod verifier;
@@ -69,3 +90,9 @@ pub use recovery::recover_public_key;
 pub use signature::{RecoverableSignature, Signature};
 pub use signer::{sign, sign_recoverable};
 pub use verifier::{verify, verify_strict};
+
+// Re-export Schnorr types from rustywallet-taproot for convenience
+pub use rustywallet_taproot::{SchnorrSignature, XOnlyPublicKey};
+
+// Re-export Schnorr signing functions
+pub use schnorr::{sign_schnorr, verify_schnorr, SchnorrSigner, SchnorrVerifier};

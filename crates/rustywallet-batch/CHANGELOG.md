@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-03
+
+### Added
+- **Batch Address Generation** - Generate addresses in batch with parallel processing
+  - `BatchAddressType` enum supporting P2PKH, P2WPKH, and P2TR address types
+  - `BatchAddressGenerator` struct for efficient address generation
+  - `generate_stream()` for memory-efficient streaming of key-address pairs
+  - `generate_vec()` for collecting addresses into a vector
+  - Support for both mainnet and testnet networks
+  - Parallel processing enabled by default for maximum performance
+  - Configurable chunk size for streaming operations
+  - `AddressStream` iterator for on-demand address generation
+- Property-based tests for batch address consistency (100+ iterations)
+
+### Changed
+- Updated to version 0.3.0
+- Added `rustywallet-address` dependency for address generation
+- Updated crate description to include address generation
+- Updated prelude to export address generation types
+
 ## [0.2.0] - 2026-01-03
 
 ### Added

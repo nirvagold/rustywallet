@@ -15,6 +15,7 @@
 //!     .unwrap();
 //! ```
 
+pub use crate::address::{AddressStream, BatchAddressGenerator, BatchAddressType};
 pub use crate::checkpoint::{Checkpoint, GenerationMode, ResumableBatchGenerator};
 pub use crate::config::BatchConfig;
 pub use crate::error::BatchError;
