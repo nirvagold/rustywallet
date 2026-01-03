@@ -162,7 +162,7 @@ Lightning Network basics
 
 ---
 
-### 23. rustywallet-musig 📋 Planned
+### 23. rustywallet-musig ✔️ Done
 MuSig2 Schnorr multisig (BIP327)
 
 **Features:**
@@ -176,7 +176,7 @@ MuSig2 Schnorr multisig (BIP327)
 
 ---
 
-### 24. rustywallet-frost 📋 Planned
+### 24. rustywallet-frost 🔜 Next
 FROST threshold signatures
 
 **Features:**
@@ -269,8 +269,8 @@ CoinJoin utilities
 
 ### v3.x (Planned)
 23. ✔️ rustywallet-lightning
-24. 📋 rustywallet-musig
-25. 📋 rustywallet-frost
+24. ✔️ rustywallet-musig
+25. 🔜 rustywallet-frost
 26. 📋 rustywallet-silent
 27. 📋 rustywallet-coinjoin
 
