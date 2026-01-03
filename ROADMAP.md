@@ -176,7 +176,7 @@ MuSig2 Schnorr multisig (BIP327)
 
 ---
 
-### 24. rustywallet-frost 🔜 Next
+### 24. rustywallet-frost ✔️ Done
 FROST threshold signatures
 
 **Features:**
@@ -189,7 +189,7 @@ FROST threshold signatures
 
 ---
 
-### 25. rustywallet-silent 📋 Planned
+### 25. rustywallet-silent 🔜 Next
 Silent Payments (BIP352)
 
 **Features:**
@@ -270,8 +270,8 @@ CoinJoin utilities
 ### v3.x (Planned)
 23. ✔️ rustywallet-lightning
 24. ✔️ rustywallet-musig
-25. 🔜 rustywallet-frost
-26. 📋 rustywallet-silent
+25. ✔️ rustywallet-frost
+26. 🔜 rustywallet-silent
 27. 📋 rustywallet-coinjoin
 
 ---

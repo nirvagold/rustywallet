@@ -1837,6 +1837,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-frost"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "proptest",
+ "rand 0.8.5",
+ "rustywallet-keys",
+ "secp256k1",
+ "sha2",
+ "thiserror 1.0.69",
+ "zeroize",
+]
+
+[[package]]
+name = "rustywallet-frost-demo"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "rustywallet-frost",
+]
+
+[[package]]
 name = "rustywallet-generator-demo"
 version = "0.1.0"
 dependencies = [
@@ -1974,15 +1996,6 @@ dependencies = [
  "sha2",
  "thiserror 1.0.69",
  "zeroize",
-]
-
-[[package]]
-name = "rustywallet-musig-demo"
-version = "0.1.0"
-dependencies = [
- "hex",
- "rustywallet-keys",
- "rustywallet-musig",
 ]
 
 [[package]]
