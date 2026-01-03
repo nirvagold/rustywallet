@@ -202,7 +202,7 @@ Silent Payments (BIP352)
 
 ---
 
-### 26. rustywallet-coinjoin 🔜 Next
+### 26. rustywallet-coinjoin ✔️ Done
 CoinJoin utilities
 
 **Features:**
@@ -272,7 +272,7 @@ CoinJoin utilities
 24. ✔️ rustywallet-musig
 25. ✔️ rustywallet-frost
 26. ✔️ rustywallet-silent
-27. 🔜 rustywallet-coinjoin
+27. ✔️ rustywallet-coinjoin
 
 ---
 

@@ -1,0 +1,26 @@
+[package]
+name = "rustywallet-coinjoin"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rustywallet Contributors"]
+description = "CoinJoin and PayJoin (BIP78) utilities for rustywallet"
+license = "MIT"
+repository = "https://github.com/rustywallet/rustywallet"
+documentation = "https://docs.rs/rustywallet-coinjoin"
+keywords = ["bitcoin", "coinjoin", "payjoin", "bip78", "privacy"]
+categories = ["cryptography", "authentication"]
+readme = "README.md"
+
+[dependencies]
+rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
+rustywallet-tx = { path = "../rustywallet-tx", version = "0.2" }
+rustywallet-psbt = { path = "../rustywallet-psbt", version = "0.1" }
+secp256k1 = { version = "0.29", features = ["rand-std", "global-context"] }
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+proptest = "1.4"
