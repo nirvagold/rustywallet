@@ -140,9 +140,9 @@ Wallet recovery tools
 - [x] Memory-mapped file output
 - [x] Resume capability
 
-### rustywallet-vanity v0.2
-- [ ] Regex pattern support
-- [ ] Distributed search (network)
+### rustywallet-vanity v0.2 ✔️ Done
+- [x] Regex pattern support
+- [x] Distributed search (network)
 
 ---
 

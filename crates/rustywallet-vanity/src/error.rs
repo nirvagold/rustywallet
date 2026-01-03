@@ -32,6 +32,10 @@ pub enum VanityError {
     /// Address derivation error.
     #[error("Address derivation error: {0}")]
     AddressError(String),
+
+    /// Generation failed.
+    #[error("Generation failed: {0}")]
+    GenerationFailed(String),
 }
 
 /// Errors related to pattern validation.
@@ -56,6 +60,10 @@ pub enum PatternError {
     /// Invalid regex pattern.
     #[error("Invalid regex pattern: {0}")]
     InvalidRegex(String),
+
+    /// Invalid pattern format.
+    #[error("Invalid pattern: {0}")]
+    InvalidPattern(String),
 
     /// Pattern conflicts with fixed prefix.
     #[error("Pattern '{0}' conflicts with fixed prefix '{1}' for this address type")]

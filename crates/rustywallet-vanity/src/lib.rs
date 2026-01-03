@@ -97,10 +97,12 @@
 pub mod address_type;
 pub mod config;
 pub mod difficulty;
+pub mod distributed;
 pub mod error;
 pub mod generator;
 pub mod pattern;
 pub mod prelude;
+pub mod regex_pattern;
 pub mod result;
 
 #[cfg(test)]
@@ -110,7 +112,12 @@ mod tests;
 pub use address_type::AddressType;
 pub use config::VanityConfig;
 pub use difficulty::{DifficultyEstimate, DifficultyLevel};
+pub use distributed::{
+    DistributedConfig, SearchCoordinator, SearchWorker, WorkResult, WorkUnit,
+    run_distributed_search,
+};
 pub use error::{PatternError, VanityError};
 pub use generator::VanityGenerator;
 pub use pattern::Pattern;
+pub use regex_pattern::{CommonPatterns, RegexPattern};
 pub use result::{SearchProgress, SearchStats, VanityResult};

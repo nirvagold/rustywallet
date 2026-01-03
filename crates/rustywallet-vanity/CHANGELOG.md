@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-03
+
+### Added
+- **Regex Pattern Support** - Full regex matching for flexible patterns
+  - `RegexPattern` for custom regex patterns
+  - `CommonPatterns` helper with pre-built patterns
+  - `starts_with()`, `ends_with()`, `contains()` helpers
+  - `repeated_char()`, `numeric_sequence()`, `letter_sequence()`
+  - Case-insensitive regex matching
+  - Difficulty estimation for regex patterns
+- **Distributed Search** - Multi-worker search coordination
+  - `SearchCoordinator` for work distribution
+  - `SearchWorker` for processing work units
+  - `WorkUnit` and `WorkResult` for serializable work items
+  - `DistributedConfig` for configuration
+  - `run_distributed_search()` for local multi-threaded search
+  - Progress callbacks during distributed search
+
+### Changed
+- Updated to version 0.2.0
+- Added `regex`, `serde`, `serde_json` dependencies
+
 ## [0.1.3] - 2026-01-02
 
 ### Added
