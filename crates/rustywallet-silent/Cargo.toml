@@ -1,0 +1,23 @@
+[package]
+name = "rustywallet-silent"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rustywallet Contributors"]
+description = "Silent Payments (BIP352) for rustywallet"
+license = "MIT"
+repository = "https://github.com/rustywallet/rustywallet"
+documentation = "https://docs.rs/rustywallet-silent"
+keywords = ["bitcoin", "silent-payments", "bip352", "privacy", "wallet"]
+categories = ["cryptography", "authentication"]
+readme = "README.md"
+
+[dependencies]
+rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
+secp256k1 = { version = "0.29", features = ["rand-std", "global-context"] }
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1.0"
+bech32 = "0.11"
+
+[dev-dependencies]
+proptest = "1.4"

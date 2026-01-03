@@ -189,7 +189,7 @@ FROST threshold signatures
 
 ---
 
-### 25. rustywallet-silent 🔜 Next
+### 25. rustywallet-silent ✔️ Done
 Silent Payments (BIP352)
 
 **Features:**
@@ -202,7 +202,7 @@ Silent Payments (BIP352)
 
 ---
 
-### 26. rustywallet-coinjoin 📋 Planned
+### 26. rustywallet-coinjoin 🔜 Next
 CoinJoin utilities
 
 **Features:**
@@ -271,8 +271,8 @@ CoinJoin utilities
 23. ✔️ rustywallet-lightning
 24. ✔️ rustywallet-musig
 25. ✔️ rustywallet-frost
-26. 🔜 rustywallet-silent
-27. 📋 rustywallet-coinjoin
+26. ✔️ rustywallet-silent
+27. 🔜 rustywallet-coinjoin
 
 ---
 
