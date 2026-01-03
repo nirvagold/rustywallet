@@ -35,6 +35,10 @@ pub enum BatchError {
     /// Stream operation failed.
     #[error("Stream operation failed: {0}")]
     StreamError(String),
+
+    /// I/O operation failed.
+    #[error("I/O error: {0}")]
+    IoError(String),
 }
 
 impl BatchError {
@@ -71,5 +75,10 @@ impl BatchError {
     /// Create a new stream error.
     pub fn stream_error(msg: impl Into<String>) -> Self {
         Self::StreamError(msg.into())
+    }
+
+    /// Create a new I/O error.
+    pub fn io_error(msg: impl Into<String>) -> Self {
+        Self::IoError(msg.into())
     }
 }

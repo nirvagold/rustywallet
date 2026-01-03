@@ -2,7 +2,7 @@
 name = "rustywallet-batch"
 description = "High-performance batch key generation for cryptocurrency wallets"
 readme = "README.md"
-version.workspace = true
+version = "0.2.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -17,6 +17,10 @@ rand.workspace = true
 thiserror.workspace = true
 rayon = "1.10"
 rand_chacha = "0.3"
+memmap2 = "0.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [dev-dependencies]
 proptest.workspace = true
+tempfile = "3.14"

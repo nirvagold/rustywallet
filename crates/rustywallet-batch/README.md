@@ -8,6 +8,9 @@ High-performance batch key generation for cryptocurrency wallets.
 - **Parallel Processing**: Utilize all CPU cores with rayon
 - **Memory Streaming**: Process unlimited keys without memory exhaustion
 - **Incremental Scanning**: Scan key ranges using EC point addition
+- **SIMD Optimization**: Platform-aware SIMD for faster processing
+- **Memory-Mapped Output**: Direct file writes without buffering overhead
+- **Resume Capability**: Checkpoint and resume long-running operations
 - **Configurable**: Flexible configuration for different use cases
 
 ## Quick Start
@@ -23,6 +26,55 @@ let keys = BatchGenerator::new()
     .unwrap();
 
 println!("Generated {} keys", keys.len());
+```
+
+## Memory-Mapped File Output
+
+```rust,no_run
+use rustywallet_batch::mmap::{MmapBatchGenerator, OutputFormat};
+
+// Generate keys directly to file
+let count = MmapBatchGenerator::new("keys.txt", 1_000_000)
+    .format(OutputFormat::Hex)
+    .parallel(true)
+    .generate()
+    .unwrap();
+
+println!("Generated {} keys to file", count);
+```
+
+## Resumable Generation
+
+```rust,no_run
+use rustywallet_batch::checkpoint::ResumableBatchGenerator;
+
+// Start or resume generation with checkpoints
+let mut generator = ResumableBatchGenerator::new(
+    "my-job",
+    10_000_000,
+    "keys.txt",
+    "checkpoint.json",
+);
+
+generator.generate_with_progress(|progress| {
+    println!("Progress: {:.1}%", progress);
+}).unwrap();
+```
+
+## SIMD Optimization
+
+```rust
+use rustywallet_batch::simd::SimdBatchProcessor;
+
+// Check SIMD availability
+println!("SIMD: {} ({})", 
+    SimdBatchProcessor::is_available(),
+    SimdBatchProcessor::feature_name()
+);
+
+// Generate with SIMD optimization
+let processor = SimdBatchProcessor::new();
+let keys = processor.parallel_generate(10_000);
 ```
 
 ## Streaming Large Batches

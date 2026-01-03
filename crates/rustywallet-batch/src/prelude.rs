@@ -15,9 +15,12 @@
 //!     .unwrap();
 //! ```
 
+pub use crate::checkpoint::{Checkpoint, GenerationMode, ResumableBatchGenerator};
 pub use crate::config::BatchConfig;
 pub use crate::error::BatchError;
 pub use crate::fast_gen::{FastKeyGenerator, IncrementalKeyGenerator};
 pub use crate::generator::BatchGenerator;
+pub use crate::mmap::{MmapBatchGenerator, MmapWriter, OutputFormat};
 pub use crate::scanner::{KeyScanner, ScanDirection};
+pub use crate::simd::SimdBatchProcessor;
 pub use crate::stream::KeyStream;

@@ -135,10 +135,10 @@ Wallet recovery tools
 - [x] Silent Payments (BIP352)
 - [x] Address validation improvements
 
-### rustywallet-batch v0.2
-- [ ] SIMD optimization
-- [ ] Memory-mapped file output
-- [ ] Resume capability
+### rustywallet-batch v0.2 ✔️ Done
+- [x] SIMD optimization
+- [x] Memory-mapped file output
+- [x] Resume capability
 
 ### rustywallet-vanity v0.2
 - [ ] Regex pattern support
