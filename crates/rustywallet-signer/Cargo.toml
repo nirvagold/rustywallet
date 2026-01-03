@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 description = "ECDSA and Schnorr message signing and verification for Bitcoin and Ethereum"
-keywords = ["crypto", "wallet", "bitcoin", "ethereum", "signature", "schnorr"]
+keywords = ["crypto", "bitcoin", "ethereum", "signature", "schnorr"]
 categories = ["cryptography", "authentication"]
 readme = "README.md"
 
