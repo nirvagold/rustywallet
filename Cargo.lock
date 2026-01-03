@@ -1898,6 +1898,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-lightning"
+version = "0.1.0"
+dependencies = [
+ "bech32",
+ "hex",
+ "proptest",
+ "rand 0.8.5",
+ "rustywallet-keys",
+ "secp256k1",
+ "sha2",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "rustywallet-lightning-demo"
+version = "0.1.0"
+dependencies = [
+ "rand 0.8.5",
+ "rustywallet-lightning",
+]
+
+[[package]]
 name = "rustywallet-mempool"
 version = "0.2.0"
 dependencies = [

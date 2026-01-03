@@ -148,7 +148,7 @@ Wallet recovery tools
 
 ## ⚡ Phase 4: Lightning & Advanced (v3) 📋 PLANNED
 
-### 22. rustywallet-lightning 📋 Planned
+### 22. rustywallet-lightning ✔️ Done
 Lightning Network basics
 
 **Features:**
@@ -158,7 +158,7 @@ Lightning Network basics
 - Node ID from seed
 - Route hints parsing
 
-**Dependencies:** rustywallet-keys, rustywallet-hd
+**Dependencies:** rustywallet-keys
 
 ---
 
@@ -268,7 +268,7 @@ CoinJoin utilities
 22. ✅ Crate improvements (v0.2 releases)
 
 ### v3.x (Planned)
-23. 📋 rustywallet-lightning
+23. ✔️ rustywallet-lightning
 24. 📋 rustywallet-musig
 25. 📋 rustywallet-frost
 26. 📋 rustywallet-silent

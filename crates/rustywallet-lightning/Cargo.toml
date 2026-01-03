@@ -1,0 +1,23 @@
+[package]
+name = "rustywallet-lightning"
+description = "Lightning Network utilities for Bitcoin wallets"
+readme = "README.md"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+keywords = ["bitcoin", "lightning", "bolt11", "invoice", "payment"]
+categories = ["cryptography", "encoding"]
+
+[dependencies]
+rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+bech32 = "0.11"
+hex = "0.4"
+secp256k1 = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
