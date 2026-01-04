@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-04
+
+### Added
+- **Taproot (P2TR) Vanity Support** - Full support for Taproot vanity addresses
+  - Generate vanity addresses starting with `bc1p` (mainnet) or `tb1p` (testnet)
+  - Taproot difficulty estimation with `DifficultyEstimate.calculate()`
+  - Property test for Taproot vanity match validity (Property 16)
+  - Unit tests for Taproot address generation and testnet support
+- Documentation updates for Taproot usage examples
+
+### Changed
+- Updated to version 0.3.0
+- Enhanced README with Taproot examples and distributed search documentation
+
 ## [0.2.0] - 2026-01-03
 
 ### Added

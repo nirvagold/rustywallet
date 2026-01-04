@@ -59,6 +59,16 @@ impl ElectrumClient {
         self.request_id.fetch_add(1, Ordering::SeqCst)
     }
 
+    /// Internal method to make transport requests (for silent payment scanner).
+    pub(crate) async fn transport_request(
+        &self,
+        id: u64,
+        method: &str,
+        params: Vec<serde_json::Value>,
+    ) -> Result<serde_json::Value> {
+        self.transport.request(id, method, params).await
+    }
+
     // ========== Balance Methods ==========
 
     /// Get balance for a single address.

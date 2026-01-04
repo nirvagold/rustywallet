@@ -18,6 +18,8 @@ pub enum ImportFormat {
     Bip38,
     /// Mini private key (Casascius)
     MiniKey,
+    /// Output descriptor (BIP380-386)
+    Descriptor,
 }
 
 impl std::fmt::Display for ImportFormat {
@@ -29,6 +31,7 @@ impl std::fmt::Display for ImportFormat {
             ImportFormat::ElectrumSeed => write!(f, "Electrum Seed"),
             ImportFormat::Bip38 => write!(f, "BIP38"),
             ImportFormat::MiniKey => write!(f, "Mini Key"),
+            ImportFormat::Descriptor => write!(f, "Descriptor"),
         }
     }
 }

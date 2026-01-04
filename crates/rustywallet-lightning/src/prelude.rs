@@ -13,6 +13,7 @@
 //! ```
 
 pub use crate::bolt11::{Bolt11Invoice, InvoiceBuilder, InvoiceData, Network};
+pub use crate::bolt12::{Bolt12Offer, OfferBuilder, OfferAmount, BlindedPath};
 pub use crate::channel::{ChannelPoint, ShortChannelId};
 pub use crate::error::LightningError;
 pub use crate::node::{NodeId, NodeIdentity};

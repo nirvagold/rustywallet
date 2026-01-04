@@ -297,6 +297,7 @@ pub fn compute_commitment(participant: &Participant) -> [u8; 32] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::InputRef;
 
     fn create_test_participant(id: &str, amount: u64) -> Participant {
         Participant::new(

@@ -1,16 +1,17 @@
 //! # rustywallet-bloom
 //!
-//! Fast and memory-efficient Bloom Filter implementation optimized for
+//! Fast and memory-efficient Bloom Filter implementations optimized for
 //! large datasets like cryptocurrency address lookups.
 //!
 //! ## Features
 //!
-//! - **Memory efficient**: ~1.2 bytes per item at 1% false positive rate
+//! - **Standard Bloom Filter**: Memory efficient (~1.2 bytes per item at 1% FPR)
+//! - **Counting Bloom Filter**: Supports removal of items (4x memory of standard)
 //! - **Fast**: Uses FNV-1a hash with double hashing technique
 //! - **No dependencies**: Pure Rust implementation
 //! - **Streaming insert**: Load millions of items efficiently
 //!
-//! ## Example
+//! ## Standard Bloom Filter
 //!
 //! ```rust
 //! use rustywallet_bloom::BloomFilter;
@@ -24,15 +25,37 @@
 //! assert!(bloom.contains("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"));
 //! assert!(!bloom.contains("not_in_filter")); // probably false
 //! ```
+//!
+//! ## Counting Bloom Filter
+//!
+//! Supports removal of items:
+//!
+//! ```rust
+//! use rustywallet_bloom::CountingBloomFilter;
+//!
+//! let mut filter = CountingBloomFilter::new(100_000, 0.01);
+//!
+//! filter.insert("address1");
+//! filter.insert("address2");
+//! assert!(filter.contains("address1"));
+//!
+//! // Remove an item
+//! filter.remove("address1").unwrap();
+//! assert!(!filter.contains("address1"));
+//! assert!(filter.contains("address2"));
+//! ```
 
 mod bloom;
+mod counting;
 mod hash;
 
 pub use bloom::BloomFilter;
+pub use counting::{CountingBloomError, CountingBloomFilter};
 
 /// Prelude module for convenient imports
 pub mod prelude {
     pub use crate::BloomFilter;
+    pub use crate::counting::{CountingBloomError, CountingBloomFilter};
 }
 
 #[cfg(test)]
@@ -89,5 +112,19 @@ mod tests {
         // Should be around 1.2MB for 1M items at 1% FPR
         assert!(bytes > 1_000_000, "Too small: {} bytes", bytes);
         assert!(bytes < 2_000_000, "Too large: {} bytes", bytes);
+    }
+
+    #[test]
+    fn test_counting_bloom_insert_remove() {
+        let mut filter = CountingBloomFilter::new(1000, 0.01);
+        
+        filter.insert("test1");
+        filter.insert("test2");
+        assert!(filter.contains("test1"));
+        assert!(filter.contains("test2"));
+        
+        filter.remove("test1").unwrap();
+        assert!(!filter.contains("test1"));
+        assert!(filter.contains("test2"));
     }
 }

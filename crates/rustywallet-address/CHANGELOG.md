@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-01-04
+
+### Added
+- **Descriptor-Based Address Derivation** (BIP380-386)
+  - `Address::from_descriptor()` method to derive addresses from descriptor strings
+  - `Address::from_descriptor_range()` for deriving multiple addresses
+  - `AddressFromDescriptor` trait for descriptor-based derivation
+  - `derive_address_from_descriptor()` function for direct derivation
+  - `derive_addresses_from_descriptor()` for batch derivation
+  - `get_descriptor_type()` to detect descriptor type
+  - `descriptor_has_wildcard()` to check for ranged descriptors
+  - `DescriptorType` enum for all supported descriptor types
+- Support for all descriptor types:
+  - `pkh()` - Pay to pubkey hash (P2PKH)
+  - `wpkh()` - Pay to witness pubkey hash (P2WPKH)
+  - `sh(wpkh())` - Nested SegWit (P2SH-P2WPKH)
+  - `tr()` - Pay to Taproot (P2TR)
+  - `wsh()` - Pay to witness script hash (P2WSH)
+  - `multi()` and `sortedmulti()` - Multisig descriptors
+- Wildcard descriptor support for ranged derivation
+- Property-based tests for descriptor derivation consistency (Property 19)
+
+### Changed
+- Updated to version 0.3.0
+- Added `rustywallet-descriptor` as dependency
+- Updated prelude with descriptor exports
+- Enhanced documentation with descriptor examples
+
 ## [0.2.0] - 2026-01-03
 
 ### Added

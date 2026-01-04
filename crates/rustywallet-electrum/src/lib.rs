@@ -126,6 +126,7 @@ pub mod error;
 pub mod pinning;
 pub mod pool;
 pub mod scripthash;
+pub mod silent_payment;
 pub mod subscription;
 pub mod transport;
 pub mod types;
@@ -144,4 +145,9 @@ pub use pool::{ConnectionPool, PoolConfig, PoolStats, PooledClient};
 pub use subscription::{
     AddressStatusEvent, AddressWatcher, BlockHeaderEvent, ConnectionStatus,
     SubscriptionClient, SubscriptionEvent, SubscriptionManager,
+};
+
+// New v0.3 re-exports - Silent Payment scanning
+pub use silent_payment::{
+    DetectedPayment, SilentPaymentLabel, SilentPaymentScanKey, SilentPaymentScanner,
 };

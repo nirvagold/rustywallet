@@ -1,13 +1,13 @@
 [package]
 name = "rustywallet-import"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["NirvaGold"]
-description = "Import private keys from various wallet formats (WIF, hex, mnemonic, BIP38, mini key)"
+description = "Import private keys from various wallet formats (WIF, hex, mnemonic, BIP38, mini key, descriptors)"
 license = "MIT"
 repository = "https://github.com/nirvagold/rustywallet"
 documentation = "https://docs.rs/rustywallet-import"
-keywords = ["bitcoin", "wallet", "import", "cryptocurrency", "bip38"]
+keywords = ["bitcoin", "wallet", "import", "cryptocurrency", "descriptor"]
 categories = ["cryptography::cryptocurrencies"]
 readme = "README.md"
 
@@ -15,8 +15,9 @@ readme = "README.md"
 # Internal crates
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
 rustywallet-mnemonic = { version = "0.1", path = "../rustywallet-mnemonic" }
-rustywallet-hd = { version = "0.2", path = "../rustywallet-hd" }
+rustywallet-hd = { version = "0.3", path = "../rustywallet-hd" }
 rustywallet-address = { version = "0.2", path = "../rustywallet-address" }
+rustywallet-descriptor = { version = "0.2", path = "../rustywallet-descriptor" }
 
 # Crypto
 sha2 = "0.10"
@@ -26,6 +27,9 @@ scrypt = "0.11"
 # Encoding
 bs58 = "0.5"
 hex = "0.4"
+
+# Serialization
+serde_json = "1.0"
 
 # Error handling
 thiserror = "2.0"

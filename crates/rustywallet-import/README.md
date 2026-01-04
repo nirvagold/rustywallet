@@ -1,6 +1,6 @@
 # rustywallet-import
 
-Import private keys from various wallet formats.
+Import private keys from various wallet formats, including descriptors and wallet files.
 
 ## Supported Formats
 
@@ -11,6 +11,7 @@ Import private keys from various wallet formats.
 | Mini Key | Casascius format | `S6c56bnX...` |
 | Mnemonic | BIP39 phrase | `abandon abandon...` |
 | BIP38 | Encrypted key | `6PRVWUbk...` |
+| Descriptor | Output descriptors | `wpkh(...)`, `tr(...)` |
 
 ## Quick Start
 
@@ -34,6 +35,51 @@ let config = MnemonicImport::new("abandon abandon abandon abandon abandon abando
 let result = import_mnemonic(config)?;
 ```
 
+## Descriptor Import
+
+Parse output descriptors and extract keys/scripts:
+
+```rust
+use rustywallet_import::descriptor::{import_descriptor, import_taproot_descriptor, is_descriptor};
+
+// Import any descriptor
+let result = import_descriptor("wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)")?;
+println!("Type: {}", result.descriptor_type);  // "wpkh"
+println!("Is SegWit: {}", result.is_segwit);   // true
+println!("Keys: {:?}", result.keys);
+
+// Import Taproot descriptor specifically
+let tr_result = import_taproot_descriptor("tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)")?;
+assert!(tr_result.is_taproot);
+
+// Check if string is a descriptor
+assert!(is_descriptor("wpkh(...)"));
+```
+
+## Wallet Format Import
+
+Import from common wallet file formats:
+
+```rust
+use rustywallet_import::wallet_format::{
+    import_electrum_wallet, import_sparrow_wallet, import_bitcoin_core_wallet, import_wallet_auto
+};
+
+// Auto-detect wallet format
+let wallet = import_wallet_auto(json_content)?;
+println!("Format: {:?}", wallet.format);
+println!("Descriptors: {:?}", wallet.descriptors);
+
+// Import Electrum wallet
+let electrum = import_electrum_wallet(electrum_json)?;
+
+// Import Sparrow wallet
+let sparrow = import_sparrow_wallet(sparrow_json)?;
+
+// Import Bitcoin Core wallet
+let core = import_bitcoin_core_wallet(core_json)?;
+```
+
 ## Format Detection
 
 ```rust
@@ -41,6 +87,10 @@ use rustywallet_import::{detect_format, ImportFormat};
 
 let format = detect_format("5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ");
 assert_eq!(format, Some(ImportFormat::Wif));
+
+// Descriptors are also detected
+let desc_format = detect_format("wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)");
+assert_eq!(desc_format, Some(ImportFormat::Descriptor));
 ```
 
 ## BIP38 Encrypted Keys
@@ -61,6 +111,7 @@ use rustywallet_import::mnemonic_import::paths;
 // BIP44 - Legacy (P2PKH): m/44'/0'/0'/0/0
 // BIP49 - SegWit-compatible (P2SH-P2WPKH): m/49'/0'/0'/0/0  
 // BIP84 - Native SegWit (P2WPKH): m/84'/0'/0'/0/0
+// BIP86 - Taproot (P2TR): m/86'/0'/0'/0/0
 ```
 
 ## License

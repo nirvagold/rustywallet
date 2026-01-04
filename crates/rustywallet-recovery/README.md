@@ -1,6 +1,6 @@
 # rustywallet-recovery
 
-Wallet recovery tools for Bitcoin - scan blockchain for funds from mnemonic or xpub.
+Wallet recovery tools for Bitcoin - scan blockchain for funds from mnemonic or xpub with parallel scanning support.
 
 ## Features
 
@@ -10,12 +10,15 @@ Wallet recovery tools for Bitcoin - scan blockchain for funds from mnemonic or x
 - **Gap Limit**: Configurable gap limit for address scanning
 - **UTXO Discovery**: Find all unspent outputs for spending
 - **Progress Reporting**: Callback for scan progress updates
+- **Parallel Scanning**: High-performance parallel scanning with multiple backends
+- **Descriptor Support**: Scan using output descriptors including tr() (Taproot)
+- **Connection Pooling**: Efficient Electrum connection management
 
 ## Installation
 
 ```toml
 [dependencies]
-rustywallet-recovery = "0.1"
+rustywallet-recovery = "0.2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 ```
 
@@ -53,6 +56,96 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Parallel Scanning with Multiple Backends
+
+For high-performance recovery with multiple Electrum servers:
+
+```rust
+use rustywallet_recovery::{
+    ParallelRecoveryScanner, ParallelScanConfig, PooledBackend
+};
+use rustywallet_descriptor::Descriptor;
+use rustywallet_electrum::PoolConfig;
+use std::sync::Arc;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create multiple pooled backends for parallel queries
+    let backend1 = Arc::new(PooledBackend::mainnet().await?);
+    let backend2 = Arc::new(PooledBackend::from_server(
+        "electrum2.example.com",
+        PoolConfig::default()
+    ).await?);
+    let backends = vec![backend1, backend2];
+
+    // Configure parallel scan
+    let config = ParallelScanConfig::new()
+        .with_thread_count(4)
+        .with_gap_limit(20);
+
+    // Create scanner
+    let scanner = ParallelRecoveryScanner::from_mnemonic(
+        "abandon abandon abandon...",
+        None,
+        backends,
+        config
+    )?;
+
+    // Parse descriptors to scan
+    let descriptors = vec![
+        Descriptor::parse("wpkh(xpub.../0/*)")?,
+        Descriptor::parse("tr(xpub.../0/*)")?,
+    ];
+
+    // Run parallel scan with progress callback
+    let result = scanner.scan_parallel(&descriptors, |progress| {
+        println!(
+            "Descriptor {}: scanned {}, found {}",
+            progress.descriptor_index,
+            progress.total_scanned,
+            progress.found_count
+        );
+    }).await?;
+
+    println!("Total balance: {} sats", result.total_balance);
+    Ok(())
+}
+```
+
+### Parallel Scanning with Connection Pooling
+
+```rust
+use rustywallet_recovery::{ParallelRecoveryScanner, ParallelScanConfig};
+use rustywallet_electrum::PoolConfig;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create scanner with connection pooling
+    let servers = &["electrum.blockstream.info", "electrum1.bluewallet.io"];
+    let pool_config = PoolConfig::default()
+        .min_connections(2)
+        .max_connections(10);
+    let scan_config = ParallelScanConfig::new()
+        .with_thread_count(4);
+
+    let scanner = ParallelRecoveryScanner::from_mnemonic_with_pool(
+        "your mnemonic...",
+        None,
+        servers,
+        pool_config,
+        scan_config
+    ).await?;
+
+    // Scan standard BIP paths in parallel
+    let result = scanner.scan_standard_paths(|progress| {
+        println!("Progress: {} addresses scanned", progress.total_scanned);
+    }).await?;
+
+    println!("{}", result.summary());
+    Ok(())
+}
+```
+
 ### Quick Scan (Smaller Gap Limit)
 
 ```rust
@@ -72,25 +165,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### Recovery from Extended Public Key
-
-```rust
-use rustywallet_recovery::{RecoveryScanner, RecoveryConfig, ElectrumBackend};
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let backend = ElectrumBackend::mainnet().await?;
-    let config = RecoveryConfig::new();
-
-    let xpub = "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8";
-    let scanner = RecoveryScanner::from_xpub(xpub, backend, config)?;
-
-    let result = scanner.scan().await?;
-    println!("Found {} addresses with balance", result.addresses.len());
-    Ok(())
-}
-```
-
 ### Export Results to JSON
 
 ```rust
@@ -100,6 +174,8 @@ std::fs::write("recovery_result.json", json)?;
 ```
 
 ## Configuration Options
+
+### RecoveryConfig (Sequential Scanning)
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -111,6 +187,16 @@ std::fs::write("recovery_result.json", json)?;
 | `scan_change` | true | Scan internal (change) addresses |
 | `testnet` | false | Use testnet derivation paths |
 
+### ParallelScanConfig (Parallel Scanning)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `thread_count` | 4 | Number of parallel tasks |
+| `gap_limit` | 20 | Consecutive empty addresses before stopping |
+| `batch_size` | 10 | Addresses to query in each batch |
+| `min_confirmations` | 1 | Minimum confirmations for UTXOs |
+| `testnet` | false | Use testnet derivation paths |
+
 ## Scan Paths
 
 | Path | Standard | Address Type |
@@ -119,6 +205,18 @@ std::fs::write("recovery_result.json", json)?;
 | BIP49 | m/49'/0'/account'/change/index | P2SH-P2WPKH (3...) |
 | BIP84 | m/84'/0'/account'/change/index | P2WPKH (bc1q...) |
 | BIP86 | m/86'/0'/account'/change/index | P2TR (bc1p...) |
+
+## Descriptor Support
+
+The parallel scanner supports all descriptor types:
+
+| Descriptor | Description |
+|------------|-------------|
+| `pkh(KEY)` | Pay to pubkey hash (P2PKH) |
+| `wpkh(KEY)` | Pay to witness pubkey hash (P2WPKH) |
+| `sh(wpkh(KEY))` | Nested SegWit (P2SH-P2WPKH) |
+| `tr(KEY)` | Pay to Taproot (P2TR) |
+| `multi(k,KEY,...)` | k-of-n multisig |
 
 ## License
 

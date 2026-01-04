@@ -1,9 +1,9 @@
 [package]
 name = "rustywallet-recovery"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["rustywallet contributors"]
-description = "Wallet recovery tools for Bitcoin - scan blockchain for funds"
+description = "Wallet recovery tools for Bitcoin - scan blockchain for funds with parallel scanning"
 license = "MIT"
 repository = "https://github.com/rustywallet/rustywallet"
 documentation = "https://docs.rs/rustywallet-recovery"
@@ -14,13 +14,16 @@ readme = "README.md"
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
 rustywallet-address = { path = "../rustywallet-address", version = "0.2" }
-rustywallet-hd = { path = "../rustywallet-hd", version = "0.2" }
+rustywallet-hd = { path = "../rustywallet-hd", version = "0.3" }
 rustywallet-mnemonic = { path = "../rustywallet-mnemonic", version = "0.1" }
-rustywallet-electrum = { path = "../rustywallet-electrum", version = "0.2" }
+rustywallet-electrum = { path = "../rustywallet-electrum", version = "0.3" }
+rustywallet-descriptor = { path = "../rustywallet-descriptor", version = "0.2" }
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 async-trait = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time"] }
+futures = "0.3"
 
 [dev-dependencies]
 proptest = "1.4"

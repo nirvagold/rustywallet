@@ -46,6 +46,14 @@ pub enum RecoveryError {
     /// Serialization error
     #[error("Serialization error: {0}")]
     SerializationError(String),
+
+    /// Descriptor error
+    #[error("Descriptor error: {0}")]
+    DescriptorError(String),
+
+    /// Parallel scan error
+    #[error("Parallel scan error: {0}")]
+    ParallelScanError(String),
 }
 
 impl From<rustywallet_mnemonic::MnemonicError> for RecoveryError {
@@ -69,5 +77,11 @@ impl From<rustywallet_electrum::ElectrumError> for RecoveryError {
 impl From<serde_json::Error> for RecoveryError {
     fn from(e: serde_json::Error) -> Self {
         RecoveryError::SerializationError(e.to_string())
+    }
+}
+
+impl From<rustywallet_descriptor::DescriptorError> for RecoveryError {
+    fn from(e: rustywallet_descriptor::DescriptorError) -> Self {
+        RecoveryError::DescriptorError(e.to_string())
     }
 }

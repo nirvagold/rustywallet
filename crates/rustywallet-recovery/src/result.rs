@@ -42,6 +42,20 @@ impl RecoveryResult {
         self.utxos.push(utxo);
     }
 
+    /// Merge another result into this one
+    ///
+    /// This is useful for aggregating results from parallel scans.
+    pub fn merge(&mut self, other: RecoveryResult) {
+        self.total_balance += other.total_balance;
+        self.addresses.extend(other.addresses);
+        self.utxos.extend(other.utxos);
+        self.stats.addresses_scanned += other.stats.addresses_scanned;
+        self.stats.addresses_with_balance += other.stats.addresses_with_balance;
+        self.stats.total_utxos += other.stats.total_utxos;
+        self.stats.accounts_scanned += other.stats.accounts_scanned;
+        // Don't merge scan_duration_ms - caller should set this
+    }
+
     /// Get balance by address type
     pub fn balance_by_type(&self, scan_path: ScanPath) -> u64 {
         self.addresses
@@ -252,5 +266,65 @@ mod tests {
         assert_eq!(result.balance_by_type(ScanPath::Bip84), 50000);
         assert_eq!(result.balance_by_type(ScanPath::Bip44), 30000);
         assert_eq!(result.balance_by_type(ScanPath::Bip49), 0);
+    }
+
+    #[test]
+    fn test_merge_results() {
+        let mut result1 = RecoveryResult::new();
+        result1.add_address(FoundAddress {
+            address: "bc1q...".into(),
+            path: "m/84'/0'/0'/0/0".into(),
+            scan_path: ScanPath::Bip84,
+            account: 0, change: 0, index: 0,
+            balance: 50000, tx_count: 1,
+        });
+        result1.stats.addresses_scanned = 100;
+
+        let mut result2 = RecoveryResult::new();
+        result2.add_address(FoundAddress {
+            address: "1...".into(),
+            path: "m/44'/0'/0'/0/0".into(),
+            scan_path: ScanPath::Bip44,
+            account: 0, change: 0, index: 0,
+            balance: 30000, tx_count: 1,
+        });
+        result2.stats.addresses_scanned = 50;
+
+        result1.merge(result2);
+
+        assert_eq!(result1.total_balance, 80000);
+        assert_eq!(result1.addresses.len(), 2);
+        assert_eq!(result1.stats.addresses_scanned, 150);
+        assert_eq!(result1.stats.addresses_with_balance, 2);
+    }
+
+    #[test]
+    fn test_merge_preserves_all_utxos() {
+        let mut result1 = RecoveryResult::new();
+        result1.add_utxo(FoundUtxo {
+            txid: "tx1".into(),
+            vout: 0,
+            amount: 10000,
+            address: "addr1".into(),
+            path: "path1".into(),
+            confirmations: 6,
+            height: 100,
+        });
+
+        let mut result2 = RecoveryResult::new();
+        result2.add_utxo(FoundUtxo {
+            txid: "tx2".into(),
+            vout: 1,
+            amount: 20000,
+            address: "addr2".into(),
+            path: "path2".into(),
+            confirmations: 3,
+            height: 103,
+        });
+
+        result1.merge(result2);
+
+        assert_eq!(result1.utxos.len(), 2);
+        assert_eq!(result1.stats.total_utxos, 2);
     }
 }

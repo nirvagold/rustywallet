@@ -3,6 +3,7 @@
 use crate::error::{ImportError, Result};
 use crate::types::{ImportFormat, ImportResult};
 use crate::{import_wif, import_hex, import_mini_key, import_mnemonic, MnemonicImport};
+use crate::descriptor::is_descriptor;
 use rustywallet_hd::Network as HdNetwork;
 use rustywallet_keys::prelude::Network as KeysNetwork;
 
@@ -23,9 +24,15 @@ fn convert_network(network: KeysNetwork) -> HdNetwork {
 ///
 /// assert_eq!(detect_format("5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ"), Some(ImportFormat::Wif));
 /// assert_eq!(detect_format("0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d"), Some(ImportFormat::Hex));
+/// assert_eq!(detect_format("wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)"), Some(ImportFormat::Descriptor));
 /// ```
 pub fn detect_format(input: &str) -> Option<ImportFormat> {
     let input = input.trim();
+    
+    // Descriptor: starts with descriptor type
+    if is_descriptor(input) {
+        return Some(ImportFormat::Descriptor);
+    }
     
     // BIP38: starts with 6P, 58 characters
     if input.starts_with("6P") && input.len() == 58 {
@@ -64,6 +71,7 @@ pub fn detect_format(input: &str) -> Option<ImportFormat> {
 ///
 /// Automatically detects the format and imports accordingly.
 /// For mnemonic imports, uses default BIP44 path (m/44'/0'/0'/0/0).
+/// For descriptor imports, use `import_descriptor()` directly.
 ///
 /// # Example
 ///
@@ -113,6 +121,11 @@ pub fn import_any(input: &str) -> Result<ImportResult> {
         ImportFormat::ElectrumSeed => {
             Err(ImportError::UnsupportedFormat(
                 "Electrum seed format not yet supported".to_string()
+            ))
+        }
+        ImportFormat::Descriptor => {
+            Err(ImportError::InvalidFormat(
+                "Descriptors don't contain private keys directly - use import_descriptor() to parse".to_string()
             ))
         }
     }
@@ -165,6 +178,18 @@ mod tests {
     }
     
     #[test]
+    fn test_detect_descriptor() {
+        let desc = "wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)";
+        assert_eq!(detect_format(desc), Some(ImportFormat::Descriptor));
+        
+        let desc_tr = "tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)";
+        assert_eq!(detect_format(desc_tr), Some(ImportFormat::Descriptor));
+        
+        let desc_sh = "sh(wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5))";
+        assert_eq!(detect_format(desc_sh), Some(ImportFormat::Descriptor));
+    }
+    
+    #[test]
     fn test_detect_unknown() {
         let unknown = "not a valid format";
         assert_eq!(detect_format(unknown), None);
@@ -196,6 +221,13 @@ mod tests {
     fn test_import_any_bip38_requires_password() {
         let bip38 = "6PRVWUbkzzsbcVac2qwfssoUJAN1Xhrg6bNk8J7Nzm5H7kxEbn2Nh2ZoGg";
         let result = import_any(bip38);
+        assert!(matches!(result, Err(ImportError::InvalidFormat(_))));
+    }
+    
+    #[test]
+    fn test_import_any_descriptor_returns_error() {
+        let desc = "wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)";
+        let result = import_any(desc);
         assert!(matches!(result, Err(ImportError::InvalidFormat(_))));
     }
 }

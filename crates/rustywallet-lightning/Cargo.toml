@@ -2,12 +2,12 @@
 name = "rustywallet-lightning"
 description = "Lightning Network utilities for Bitcoin wallets"
 readme = "README.md"
-version = "0.1.0"
+version = "0.2.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-keywords = ["bitcoin", "lightning", "bolt11", "invoice", "payment"]
+keywords = ["bitcoin", "lightning", "bolt11", "bolt12", "invoice", "offer"]
 categories = ["cryptography", "encoding"]
 
 [dependencies]

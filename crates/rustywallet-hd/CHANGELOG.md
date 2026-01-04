@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-04
+
+### Added
+- **Fluent Derivation Path Builder**
+  - `DerivationPathBuilder` struct for fluent path construction
+  - `hardened()` and `normal()` methods for adding components
+  - `build()` method with validation
+  - BIP presets: `bip44()`, `bip49()`, `bip84()`, `bip86()`
+  - `DerivationPath::builder()` convenience method
+  - Path component validation (index must be < 2^31)
+
+- **SLIP39 Shamir Secret Sharing**
+  - `Slip39` struct for basic threshold secret sharing
+  - `split()` method to split secrets into shares
+  - `combine()` method to recover secrets from shares
+  - `Slip39Share` struct with checksum validation
+  - GF(256) arithmetic for Shamir's Secret Sharing
+
+- **Multi-Group SLIP39**
+  - `Slip39MultiGroup` struct for advanced multi-group schemes
+  - `GroupConfig` struct for per-group threshold configuration
+  - Support for up to 16 groups with different thresholds
+  - Hierarchical secret sharing (group threshold + member threshold)
+
+- **Property-Based Tests**
+  - Derivation path round-trip property test
+  - SLIP39 split/combine round-trip property test
+  - Multi-group SLIP39 round-trip property test
+
+### Changed
+- Updated version to 0.3.0
+- Updated keywords to include "slip39"
+- Enhanced documentation with SLIP39 examples
+
 ## [0.2.0] - 2026-01-03
 
 ### Added
@@ -47,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Secure memory handling with automatic zeroization on drop
 - Debug protection for sensitive data
 
+[0.3.0]: https://github.com/nirvagold/rustywallet/compare/rustywallet-hd-v0.2.0...rustywallet-hd-v0.3.0
 [0.2.0]: https://github.com/nirvagold/rustywallet/compare/rustywallet-hd-v0.1.2...rustywallet-hd-v0.2.0
 [0.1.2]: https://github.com/nirvagold/rustywallet/compare/rustywallet-hd-v0.1.0...rustywallet-hd-v0.1.2
 [0.1.0]: https://github.com/nirvagold/rustywallet/releases/tag/rustywallet-hd-v0.1.0

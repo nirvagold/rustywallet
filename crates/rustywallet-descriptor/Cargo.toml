@@ -1,26 +1,28 @@
 [package]
 name = "rustywallet-descriptor"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["rustywallet contributors"]
-description = "Output descriptors (BIP380-386) for Bitcoin wallet development"
+description = "Output descriptors (BIP380-386) for Bitcoin wallet development with Taproot support"
 license = "MIT"
 repository = "https://github.com/rustywallet/rustywallet"
 documentation = "https://docs.rs/rustywallet-descriptor"
-keywords = ["bitcoin", "descriptor", "wallet", "bip380", "miniscript"]
+keywords = ["bitcoin", "descriptor", "wallet", "bip380", "taproot"]
 categories = ["cryptography::cryptocurrencies"]
 readme = "README.md"
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
 rustywallet-address = { path = "../rustywallet-address", version = "0.2" }
-rustywallet-hd = { path = "../rustywallet-hd", version = "0.2" }
+rustywallet-hd = { path = "../rustywallet-hd", version = "0.3" }
+rustywallet-taproot = { path = "../rustywallet-taproot", version = "0.1" }
 thiserror = "1.0"
 hex = "0.4"
 sha2 = "0.10"
 ripemd = "0.1"
 bs58 = "0.5"
 bech32 = "0.11"
+secp256k1 = { version = "0.29", features = ["global-context"] }
 
 [dev-dependencies]
 proptest = "1.4"

@@ -92,7 +92,31 @@ impl Mnemonic {
     }
 
     /// Generate a new random mnemonic with the specified word count and language.
+    ///
+    /// This is an alias for `generate_with_language` for backwards compatibility.
     pub fn generate_in(word_count: WordCount, language: Language) -> Self {
+        Self::generate_with_language(word_count, language)
+    }
+
+    /// Generate a new random mnemonic with the specified word count and language.
+    ///
+    /// Uses cryptographically secure random number generation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rustywallet_mnemonic::{Mnemonic, WordCount, Language};
+    ///
+    /// // Generate a Japanese mnemonic
+    /// let mnemonic = Mnemonic::generate_with_language(WordCount::Words12, Language::Japanese);
+    /// assert_eq!(mnemonic.language(), Language::Japanese);
+    /// assert_eq!(mnemonic.words().len(), 12);
+    ///
+    /// // Generate a Spanish mnemonic
+    /// let mnemonic = Mnemonic::generate_with_language(WordCount::Words24, Language::Spanish);
+    /// assert_eq!(mnemonic.language(), Language::Spanish);
+    /// ```
+    pub fn generate_with_language(word_count: WordCount, language: Language) -> Self {
         let entropy_bytes = word_count.entropy_bytes();
         let mut entropy = vec![0u8; entropy_bytes];
         rand::rngs::OsRng.fill_bytes(&mut entropy);
@@ -221,6 +245,55 @@ impl Mnemonic {
             entropy: Zeroizing::new(entropy),
             language,
         })
+    }
+
+    /// Parse a mnemonic from a phrase with automatic language detection.
+    ///
+    /// This method tries to detect the language by checking which wordlist
+    /// contains all the words in the phrase. If no single language contains
+    /// all words, it returns an error.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rustywallet_mnemonic::{Mnemonic, Language};
+    ///
+    /// // Auto-detect English mnemonic
+    /// let phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+    /// let mnemonic = Mnemonic::parse_auto_detect(phrase).unwrap();
+    /// assert_eq!(mnemonic.language(), Language::English);
+    ///
+    /// // Auto-detect Japanese mnemonic
+    /// let mnemonic = Mnemonic::generate_with_language(
+    ///     rustywallet_mnemonic::WordCount::Words12,
+    ///     Language::Japanese
+    /// );
+    /// let phrase = mnemonic.to_phrase();
+    /// let parsed = Mnemonic::parse_auto_detect(&phrase).unwrap();
+    /// assert_eq!(parsed.language(), Language::Japanese);
+    /// ```
+    pub fn parse_auto_detect(phrase: &str) -> Result<Self, MnemonicError> {
+        let phrase = phrase.trim();
+        if phrase.is_empty() {
+            return Err(MnemonicError::EmptyPhrase);
+        }
+
+        // Try to detect language from the phrase
+        match Language::detect_from_phrase(phrase) {
+            Some(language) => Self::from_phrase_in(phrase, language),
+            None => {
+                // If no language matches all words, try to find the first invalid word
+                let words: Vec<&str> = phrase.split_whitespace().collect();
+                for word in &words {
+                    let word_lower = word.to_lowercase();
+                    if Language::detect_from_word(&word_lower).is_none() {
+                        return Err(MnemonicError::InvalidWord(word_lower));
+                    }
+                }
+                // If all words exist in some language but not all in the same language
+                Err(MnemonicError::LanguageDetectionFailed)
+            }
+        }
     }
 
     /// Validate the mnemonic (checksum and wordlist).
@@ -392,6 +465,97 @@ mod tests {
         let debug = format!("{:?}", mnemonic);
         assert_eq!(debug, "Mnemonic(****)");
         assert!(!debug.contains("abandon"));
+    }
+
+    #[test]
+    fn test_generate_with_language_japanese() {
+        let mnemonic = Mnemonic::generate_with_language(WordCount::Words12, Language::Japanese);
+        assert_eq!(mnemonic.words().len(), 12);
+        assert_eq!(mnemonic.language(), Language::Japanese);
+        assert!(mnemonic.validate().is_ok());
+        // Verify all words are in Japanese wordlist
+        for word in mnemonic.words() {
+            assert!(Language::Japanese.contains(word));
+        }
+    }
+
+    #[test]
+    fn test_generate_with_language_spanish() {
+        let mnemonic = Mnemonic::generate_with_language(WordCount::Words12, Language::Spanish);
+        assert_eq!(mnemonic.words().len(), 12);
+        assert_eq!(mnemonic.language(), Language::Spanish);
+        assert!(mnemonic.validate().is_ok());
+    }
+
+    #[test]
+    fn test_generate_with_language_chinese() {
+        let mnemonic = Mnemonic::generate_with_language(WordCount::Words12, Language::ChineseSimplified);
+        assert_eq!(mnemonic.words().len(), 12);
+        assert_eq!(mnemonic.language(), Language::ChineseSimplified);
+        assert!(mnemonic.validate().is_ok());
+    }
+
+    #[test]
+    fn test_generate_with_language_korean() {
+        let mnemonic = Mnemonic::generate_with_language(WordCount::Words12, Language::Korean);
+        assert_eq!(mnemonic.words().len(), 12);
+        assert_eq!(mnemonic.language(), Language::Korean);
+        assert!(mnemonic.validate().is_ok());
+    }
+
+    #[test]
+    fn test_parse_auto_detect_english() {
+        let phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        let mnemonic = Mnemonic::parse_auto_detect(phrase).unwrap();
+        assert_eq!(mnemonic.language(), Language::English);
+        assert_eq!(mnemonic.words().len(), 12);
+    }
+
+    #[test]
+    fn test_parse_auto_detect_japanese() {
+        // Generate a Japanese mnemonic and then parse it with auto-detect
+        let original = Mnemonic::generate_with_language(WordCount::Words12, Language::Japanese);
+        let phrase = original.to_phrase();
+        let parsed = Mnemonic::parse_auto_detect(&phrase).unwrap();
+        assert_eq!(parsed.language(), Language::Japanese);
+        assert_eq!(parsed.to_phrase(), phrase);
+    }
+
+    #[test]
+    fn test_parse_auto_detect_spanish() {
+        let original = Mnemonic::generate_with_language(WordCount::Words12, Language::Spanish);
+        let phrase = original.to_phrase();
+        let parsed = Mnemonic::parse_auto_detect(&phrase).unwrap();
+        assert_eq!(parsed.language(), Language::Spanish);
+    }
+
+    #[test]
+    fn test_parse_auto_detect_chinese() {
+        let original = Mnemonic::generate_with_language(WordCount::Words12, Language::ChineseSimplified);
+        let phrase = original.to_phrase();
+        let parsed = Mnemonic::parse_auto_detect(&phrase).unwrap();
+        assert_eq!(parsed.language(), Language::ChineseSimplified);
+    }
+
+    #[test]
+    fn test_parse_auto_detect_korean() {
+        let original = Mnemonic::generate_with_language(WordCount::Words12, Language::Korean);
+        let phrase = original.to_phrase();
+        let parsed = Mnemonic::parse_auto_detect(&phrase).unwrap();
+        assert_eq!(parsed.language(), Language::Korean);
+    }
+
+    #[test]
+    fn test_parse_auto_detect_invalid_word() {
+        let phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon notaword";
+        let result = Mnemonic::parse_auto_detect(phrase);
+        assert!(matches!(result, Err(MnemonicError::InvalidWord(_))));
+    }
+
+    #[test]
+    fn test_parse_auto_detect_empty() {
+        let result = Mnemonic::parse_auto_detect("");
+        assert!(matches!(result, Err(MnemonicError::EmptyPhrase)));
     }
 }
 

@@ -1,6 +1,6 @@
 //! # rustywallet-multisig
 //!
-//! Bitcoin multi-signature wallet utilities with Shamir Secret Sharing and MuSig2 support.
+//! Bitcoin multi-signature wallet utilities with Shamir Secret Sharing, MuSig2, and FROST support.
 //!
 //! ## Features
 //!
@@ -8,7 +8,8 @@
 //! - Generate P2SH, P2WSH, and P2SH-P2WSH addresses
 //! - Sign and combine multisig transactions
 //! - PSBT integration for hardware wallet interoperability
-//! - MuSig2 key aggregation for Schnorr multisig
+//! - MuSig2 key aggregation for n-of-n Schnorr multisig
+//! - FROST threshold signatures for t-of-n Schnorr multisig
 //! - Shamir Secret Sharing for key backup
 //!
 //! ## Quick Start
@@ -34,6 +35,35 @@
 //! println!("P2SH address: {}", wallet.address_p2sh);
 //! println!("P2WSH address: {}", wallet.address_p2wsh);
 //! println!("P2SH-P2WSH address: {}", wallet.address_p2sh_p2wsh);
+//! ```
+//!
+//! ## FROST Threshold Multisig
+//!
+//! ```rust,ignore
+//! use rustywallet_multisig::frost::{FrostMultisig, FrostParticipant, FrostSigningRound};
+//! use rustywallet_frost::prelude::*;
+//!
+//! // After DKG, create FrostMultisig
+//! let frost_multisig = FrostMultisig::from_dkg(public_key_package);
+//!
+//! // Start signing round
+//! let message = [0xab; 32];
+//! let mut round = frost_multisig.start_signing(message);
+//!
+//! // Each participant generates commitments
+//! let mut participant = FrostParticipant::new(key_package);
+//! let commitments = participant.generate_nonces().unwrap();
+//! round.add_commitment(participant.identifier(), commitments).unwrap();
+//!
+//! // After collecting threshold commitments, finalize commitment phase
+//! round.finalize_commitments().unwrap();
+//!
+//! // Each participant signs
+//! let partial_sig = participant.sign(round.commitments(), &message).unwrap();
+//! round.add_partial_sig(partial_sig).unwrap();
+//!
+//! // Finalize to get the aggregated signature
+//! let signature = round.finalize().unwrap();
 //! ```
 //!
 //! ## PSBT Integration
@@ -105,6 +135,7 @@ pub mod combiner;
 pub mod shamir;
 pub mod psbt;
 pub mod musig;
+pub mod frost;
 
 pub use error::{MultisigError, Result};
 pub use config::MultisigConfig;
@@ -115,6 +146,7 @@ pub use combiner::{combine_signatures, CombinedSignatures};
 pub use shamir::{split_secret, combine_shares, ShamirShare};
 pub use psbt::{MultisigPsbtBuilder, PsbtPartialSig};
 pub use musig::{MuSigKeyAgg, musig_to_p2tr_address};
+pub use frost::{FrostMultisig, FrostSigningRound, FrostParticipant, FrostPsbtBuilder};
 
 /// Prelude module for convenient imports.
 pub mod prelude {
@@ -126,5 +158,6 @@ pub mod prelude {
         split_secret, combine_shares, ShamirShare,
         MultisigPsbtBuilder, PsbtPartialSig,
         MuSigKeyAgg, musig_to_p2tr_address,
+        FrostMultisig, FrostSigningRound, FrostParticipant, FrostPsbtBuilder,
     };
 }

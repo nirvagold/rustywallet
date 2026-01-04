@@ -13,6 +13,7 @@ Electrum protocol client for Bitcoin balance checking and UTXO fetching.
 - **Server discovery** - DNS-based server discovery with latency testing
 - **Connection pooling** - Efficient connection management for high throughput
 - **Real-time subscriptions** - Address and header change notifications
+- **Silent Payment scanning** - BIP352 Silent Payment detection via Electrum (v0.3)
 - **No rate limits** - Unlike public APIs, Electrum has no rate limiting
 
 ## Quick Start
@@ -129,6 +130,51 @@ let tls_config = PinningConfigBuilder::new()
     .build();
 ```
 
+## Silent Payment Scanning (v0.3)
+
+Scan for BIP352 Silent Payments using Electrum backend:
+
+```rust
+use rustywallet_electrum::{ElectrumClient, SilentPaymentScanner, SilentPaymentScanKey};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = ElectrumClient::new("electrum.blockstream.info").await?;
+    
+    // Create scan key from your private keys
+    let scan_key = SilentPaymentScanKey::new(
+        scan_privkey,   // 32-byte scan private key
+        spend_privkey,  // 32-byte spend private key
+    )?;
+    
+    // Create scanner
+    let mut scanner = SilentPaymentScanner::new(client, scan_key);
+    
+    // Add labels for multiple addresses (optional)
+    scanner.add_labels(5); // Scan labels 0-4
+    
+    // Scan a transaction for payments
+    let payments = scanner.scan_transaction("txid...", 800000).await?;
+    
+    for payment in payments {
+        println!("Found payment: {} sats", payment.amount);
+        println!("  Output: {}:{}", payment.txid, payment.output_index);
+        println!("  Label: {:?}", payment.label);
+        // Use payment.spending_key to spend the output
+    }
+    
+    Ok(())
+}
+```
+
+### Silent Payment Features
+
+- **Transaction scanning** - Scan individual transactions for Silent Payments
+- **Block scanning** - Scan entire blocks for payments
+- **Address history scanning** - Scan all transactions for a P2TR address
+- **Label support** - Detect payments to labeled addresses
+- **Spending key derivation** - Get the private key to spend detected outputs
+
 ## Address Support
 
 All Bitcoin address types are supported:
@@ -197,6 +243,18 @@ Built-in list of public Electrum servers:
 ### Batch (v0.2)
 - `BatchRequest::new()` - Create batch builder
 - `GapLimitScanner` - Scan with gap limit
+
+### Silent Payments (v0.3)
+- `SilentPaymentScanner::new()` - Create Silent Payment scanner
+- `SilentPaymentScanKey::new()` - Create scan key from private keys
+- `SilentPaymentLabel::new()` - Create label for scanning
+- `scan_blocks()` - Scan block range for payments
+- `scan_block()` - Scan single block
+- `scan_transaction()` - Scan single transaction
+- `scan_transactions()` - Scan multiple transactions
+- `scan_address_history()` - Scan address transaction history
+- `add_label()` / `add_labels()` - Add labels for scanning
+- `DetectedPayment` - Detected payment with spending key
 
 ## License
 

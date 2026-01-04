@@ -48,4 +48,38 @@ pub enum HdError {
     /// Invalid BIP85 byte count
     #[error("Invalid BIP85 byte count: {0} (must be 16-64)")]
     InvalidBip85ByteCount(usize),
+
+    // ========== SLIP39 Errors ==========
+
+    /// Invalid SLIP39 threshold
+    #[error("Invalid SLIP39 threshold: {0} (must be 1-16 and <= share_count)")]
+    InvalidSlip39Threshold(u8),
+
+    /// Invalid SLIP39 share count
+    #[error("Invalid SLIP39 share count: {0} (must be 1-16)")]
+    InvalidSlip39ShareCount(u8),
+
+    /// Invalid SLIP39 secret length
+    #[error("Invalid SLIP39 secret length: {0} (must be at least 16 bytes)")]
+    InvalidSlip39SecretLength(usize),
+
+    /// Insufficient SLIP39 shares for recovery
+    #[error("Insufficient SLIP39 shares: need {needed}, have {have}")]
+    InsufficientSlip39Shares { needed: usize, have: usize },
+
+    /// Invalid SLIP39 checksum
+    #[error("Invalid SLIP39 share checksum")]
+    InvalidSlip39Checksum,
+
+    /// SLIP39 identifier mismatch
+    #[error("SLIP39 shares have different identifiers")]
+    Slip39IdentifierMismatch,
+
+    /// Random generation failed
+    #[error("Random number generation failed")]
+    RandomGenerationFailed,
+
+    /// Invalid SLIP39 group configuration
+    #[error("Invalid SLIP39 group configuration: {0}")]
+    InvalidSlip39GroupConfig(String),
 }

@@ -8,64 +8,89 @@ A comprehensive collection of Rust crates for Bitcoin wallet development with fo
 
 ## 🎯 Features
 
-- **17 Published Crates** - Modular architecture, use only what you need
+- **26 Published Crates** - Modular architecture, use only what you need
 - **High Performance** - 7M+ keys/sec batch generation
 - **Type-Safe** - Leverage Rust's type system for correctness
 - **Secure** - Zeroize sensitive data, constant-time operations
 - **Well Documented** - Comprehensive docs and examples
 - **No Rate Limits** - Electrum protocol for unlimited balance checks
+- **Advanced Crypto** - MuSig2, FROST, Silent Payments, Taproot
 
 ## 📦 Crates
 
-### Core (v1) ✔️ Complete
+### Core
 
 | Crate | Version | Description |
 |-------|---------|-------------|
 | [rustywallet](https://crates.io/crates/rustywallet) | 0.1.0 | Umbrella crate - all features in one |
 | [rustywallet-keys](https://crates.io/crates/rustywallet-keys) | 0.1.3 | Private & Public key management |
-| [rustywallet-address](https://crates.io/crates/rustywallet-address) | 0.1.3 | Address generation (P2PKH, P2SH, P2WPKH, P2TR, ETH) |
-| [rustywallet-mnemonic](https://crates.io/crates/rustywallet-mnemonic) | 0.1.0 | BIP39 mnemonic/seed phrase |
-| [rustywallet-hd](https://crates.io/crates/rustywallet-hd) | 0.1.0 | HD Wallet (BIP32/BIP44/BIP84) |
-| [rustywallet-signer](https://crates.io/crates/rustywallet-signer) | 0.1.0 | Message & transaction signing |
-| [rustywallet-checker](https://crates.io/crates/rustywallet-checker) | 0.1.0 | Address balance checking via APIs |
-| [rustywallet-bloom](https://crates.io/crates/rustywallet-bloom) | 0.1.0 | Bloom filter for address matching |
+| [rustywallet-address](https://crates.io/crates/rustywallet-address) | 0.3.0 | Address generation + descriptor derivation |
+| [rustywallet-mnemonic](https://crates.io/crates/rustywallet-mnemonic) | 0.2.0 | BIP39 mnemonic (5 languages) |
+| [rustywallet-hd](https://crates.io/crates/rustywallet-hd) | 0.3.0 | HD Wallet + SLIP39 Shamir |
+| [rustywallet-signer](https://crates.io/crates/rustywallet-signer) | 0.2.0 | ECDSA + Schnorr signing |
+| [rustywallet-descriptor](https://crates.io/crates/rustywallet-descriptor) | 0.2.0 | Output descriptors (BIP380-386) |
+
+### Performance & Network
+
+| Crate | Version | Description |
+|-------|---------|-------------|
+| [rustywallet-batch](https://crates.io/crates/rustywallet-batch) | 0.3.0 | Batch key + address generation |
+| [rustywallet-vanity](https://crates.io/crates/rustywallet-vanity) | 0.3.0 | Vanity addresses (P2PKH, P2WPKH, P2TR) |
+| [rustywallet-electrum](https://crates.io/crates/rustywallet-electrum) | 0.3.0 | Electrum + Silent Payment scanning |
+| [rustywallet-mempool](https://crates.io/crates/rustywallet-mempool) | 0.1.0 | Mempool.space API |
+| [rustywallet-checker](https://crates.io/crates/rustywallet-checker) | 0.2.0 | Balance checking (API + Electrum) |
+| [rustywallet-bloom](https://crates.io/crates/rustywallet-bloom) | 0.2.0 | Bloom + Counting Bloom filters |
+
+### Transaction & PSBT
+
+| Crate | Version | Description |
+|-------|---------|-------------|
+| [rustywallet-tx](https://crates.io/crates/rustywallet-tx) | 0.3.0 | TX building + MuSig2/FROST/Silent |
+| [rustywallet-psbt](https://crates.io/crates/rustywallet-psbt) | 0.2.0 | PSBT + MuSig2/FROST partial sigs |
+| [rustywallet-multisig](https://crates.io/crates/rustywallet-multisig) | 0.3.0 | Multisig + FROST threshold |
+| [rustywallet-coinjoin](https://crates.io/crates/rustywallet-coinjoin) | 0.2.0 | CoinJoin + PayJoin (BIP78) |
+
+### Advanced Cryptography
+
+| Crate | Version | Description |
+|-------|---------|-------------|
+| [rustywallet-taproot](https://crates.io/crates/rustywallet-taproot) | 0.1.0 | Taproot (BIP340/341/342) |
+| [rustywallet-musig](https://crates.io/crates/rustywallet-musig) | 0.1.0 | MuSig2 Schnorr multisig |
+| [rustywallet-frost](https://crates.io/crates/rustywallet-frost) | 0.1.0 | FROST threshold signatures |
+| [rustywallet-silent](https://crates.io/crates/rustywallet-silent) | 0.1.0 | Silent Payments (BIP352) |
+
+### Utility
+
+| Crate | Version | Description |
+|-------|---------|-------------|
+| [rustywallet-import](https://crates.io/crates/rustywallet-import) | 0.2.0 | Import WIF, hex, mnemonic, descriptors |
+| [rustywallet-export](https://crates.io/crates/rustywallet-export) | 0.2.0 | Export JSON, CSV, descriptors, PSBT |
+| [rustywallet-recovery](https://crates.io/crates/rustywallet-recovery) | 0.2.0 | Parallel wallet recovery |
+| [rustywallet-lightning](https://crates.io/crates/rustywallet-lightning) | 0.2.0 | BOLT11 + BOLT12 offers |
 | [rustywallet-cli](https://crates.io/crates/rustywallet-cli) | 0.1.0 | Command-line interface |
 
-### Performance & Network ✔️ Complete
+## 🔧 Feature Matrix
 
-| Crate | Version | Description |
-|-------|---------|-------------|
-| [rustywallet-batch](https://crates.io/crates/rustywallet-batch) | 0.1.3 | High-performance batch generation (7M+ keys/sec) |
-| [rustywallet-vanity](https://crates.io/crates/rustywallet-vanity) | 0.1.3 | Vanity address generator |
-| [rustywallet-electrum](https://crates.io/crates/rustywallet-electrum) | 0.1.0 | Electrum protocol client (no rate limits!) |
-| [rustywallet-mempool](https://crates.io/crates/rustywallet-mempool) | 0.1.0 | Mempool.space API integration |
-
-### Utility & Transaction ✔️ Complete
-
-| Crate | Version | Description |
-|-------|---------|-------------|
-| [rustywallet-import](https://crates.io/crates/rustywallet-import) | 0.1.0 | Import from WIF, hex, mnemonic, BIP38 |
-| [rustywallet-export](https://crates.io/crates/rustywallet-export) | 0.1.0 | Export to JSON, CSV, paper wallet, BIP38 |
-| [rustywallet-tx](https://crates.io/crates/rustywallet-tx) | 0.1.0 | Transaction building & signing |
-| [rustywallet-multisig](https://crates.io/crates/rustywallet-multisig) | 0.1.0 | Multi-signature wallets + Shamir Secret Sharing |
-
-### Coming Soon (v2)
-
-| Crate | Status | Description |
-|-------|--------|-------------|
-| rustywallet-psbt | 🔜 Next | PSBT (BIP174) for hardware wallets |
-| rustywallet-taproot | 📋 Planned | Full Taproot support (BIP340/341/342) |
-| rustywallet-descriptor | 📋 Planned | Output descriptors (BIP380-386) |
-| rustywallet-recovery | 📋 Planned | Wallet recovery tools |
-
-### Future (v3)
-
-| Crate | Status | Description |
-|-------|--------|-------------|
-| rustywallet-lightning | 📋 Planned | Lightning Network (BOLT11) |
-| rustywallet-musig | 📋 Planned | MuSig2 Schnorr multisig |
-| rustywallet-frost | 📋 Planned | FROST threshold signatures |
-| rustywallet-silent | 📋 Planned | Silent Payments (BIP352) |
+| Feature | Crate(s) | Status |
+|---------|----------|--------|
+| Key Generation | keys, batch | ✅ |
+| Address Types (P2PKH, P2WPKH, P2TR) | address | ✅ |
+| HD Wallets (BIP32/44/84/86) | hd | ✅ |
+| Mnemonics (5 languages) | mnemonic | ✅ |
+| SLIP39 Shamir | hd | ✅ |
+| Output Descriptors | descriptor, address | ✅ |
+| Taproot | taproot, address | ✅ |
+| Schnorr Signatures | signer, taproot | ✅ |
+| MuSig2 | musig, tx, psbt | ✅ |
+| FROST Threshold | frost, tx, psbt, multisig | ✅ |
+| Silent Payments | silent, tx, electrum | ✅ |
+| PSBT (BIP174) | psbt | ✅ |
+| CoinJoin / PayJoin | coinjoin | ✅ |
+| BOLT11 Invoices | lightning | ✅ |
+| BOLT12 Offers | lightning | ✅ |
+| Electrum Protocol | electrum, checker | ✅ |
+| Vanity Addresses | vanity | ✅ |
+| Bloom Filters | bloom | ✅ |
 
 ## 🚀 Quick Start
 
@@ -81,8 +106,8 @@ Or pick individual crates:
 ```toml
 [dependencies]
 rustywallet-keys = "0.1"
-rustywallet-address = "0.1"
-rustywallet-tx = "0.1"
+rustywallet-address = "0.3"
+rustywallet-tx = "0.3"
 ```
 
 ### Basic Usage
@@ -103,6 +128,44 @@ let mnemonic = Mnemonic::generate(12)?;
 println!("Mnemonic: {}", mnemonic.phrase());
 ```
 
+### Descriptor-Based Address Derivation
+
+```rust
+use rustywallet_address::prelude::*;
+
+// Derive from wpkh descriptor
+let addr = Address::from_descriptor(
+    "wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)",
+    0,
+    Network::BitcoinMainnet,
+)?;
+
+// Derive from Taproot descriptor
+let addr = Address::from_descriptor(
+    "tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)",
+    0,
+    Network::BitcoinMainnet,
+)?;
+```
+
+### BOLT12 Offers
+
+```rust
+use rustywallet_lightning::bolt12::{Bolt12Offer, OfferBuilder};
+
+// Create an offer
+let offer = OfferBuilder::new()
+    .description("Coffee")
+    .amount_msats(10_000)
+    .issuer("Bob's Coffee Shop")
+    .build()?;
+
+println!("Offer: {}", offer.encode());  // lno1...
+
+// Parse an offer
+let parsed = Bolt12Offer::parse(&offer.encode())?;
+```
+
 ### High-Performance Batch Generation
 
 ```rust
@@ -113,22 +176,29 @@ let generator = FastKeyGenerator::new();
 for key in generator.take(1_000_000) {
     // Process key...
 }
+
+// Generate addresses in parallel
+let addr_gen = BatchAddressGenerator::new(BatchAddressType::P2TR, Network::Mainnet);
+for (key, address) in addr_gen.generate_stream(10_000) {
+    // Process...
+}
 ```
 
-### Vanity Address Generation
+### Vanity Address Generation (Including Taproot)
 
 ```rust
 use rustywallet_vanity::prelude::*;
 
-// Find address starting with "1Love"
+// Find Taproot address with pattern
 let result = VanityGenerator::new()
-    .pattern(Pattern::prefix("1Love"))
+    .address_type(AddressType::P2TR)
+    .pattern(Pattern::prefix("abc"))
     .generate()?;
 
-println!("Found: {}", result.address);
+println!("Found: {}", result.address);  // bc1pabc...
 ```
 
-### Electrum Balance Checking (No Rate Limits!)
+### Electrum Balance Checking
 
 ```rust
 use rustywallet_electrum::{ElectrumClient, Network};
@@ -141,83 +211,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let balance = client.get_balance("bc1q...").await?;
     println!("Balance: {} sats", balance.confirmed);
     
-    // Batch check thousands of addresses
-    let addresses = vec!["bc1q...", "bc1q...", "bc1q..."];
-    let balances = client.get_balances(&addresses).await?;
-    
     Ok(())
 }
 ```
 
-### Transaction Building
+### Counting Bloom Filter
 
 ```rust
-use rustywallet_tx::prelude::*;
+use rustywallet_bloom::CountingBloomFilter;
 
-// Build a transaction
-let unsigned = TxBuilder::new()
-    .add_input(utxo)
-    .add_output(50_000, recipient_script)
-    .set_fee_rate(10) // sat/vB
-    .set_change_address("bc1q...")
-    .build()?;
+let mut filter = CountingBloomFilter::new(100_000, 0.01);
 
-// Sign
-sign_p2wpkh(&mut unsigned.tx, 0, utxo.value, &private_key)?;
+// Insert and remove items
+filter.insert("address1");
+filter.insert("address2");
+assert!(filter.contains("address1"));
 
-// Broadcast
-let hex = unsigned.tx.to_hex();
+filter.remove("address1")?;
+assert!(!filter.contains("address1"));
 ```
 
-### Multi-Signature Wallet
+### Multi-Language Mnemonics
 
 ```rust
-use rustywallet_multisig::prelude::*;
+use rustywallet_mnemonic::{Mnemonic, Language};
 
-// Create 2-of-3 multisig
-let wallet = MultisigWallet::from_pubkeys(2, pubkeys, Network::Mainnet)?;
+// Generate in Japanese
+let mnemonic = Mnemonic::generate_with_language(12, Language::Japanese)?;
 
-println!("P2SH: {}", wallet.address_p2sh);      // 3...
-println!("P2WSH: {}", wallet.address_p2wsh);    // bc1q...
-
-// Sign with multiple keys
-let sig1 = sign_p2sh_multisig(&sighash, &key1, &wallet)?;
-let sig2 = sign_p2sh_multisig(&sighash, &key2, &wallet)?;
-let combined = combine_signatures(&[sig1, sig2], &wallet)?;
+// Auto-detect language when parsing
+let parsed = Mnemonic::parse_auto_detect("あいこくしん あいさつ...")?;
+assert_eq!(parsed.language(), Language::Japanese);
 ```
 
-### Shamir Secret Sharing
+### SLIP39 Shamir Secret Sharing
 
 ```rust
-use rustywallet_multisig::{split_secret, combine_shares};
+use rustywallet_hd::Slip39;
 
-// Split private key into 5 shares, need 3 to recover
-let shares = split_secret(&private_key_bytes, 3, 5)?;
+// Split seed into 5 shares, need 3 to recover
+let slip39 = Slip39::new(3, 5);
+let shares = slip39.split(&seed)?;
 
 // Recover with any 3 shares
-let recovered = combine_shares(&shares[0..3])?;
-```
-
-### Import/Export
-
-```rust
-use rustywallet_import::{import_any, detect_format};
-use rustywallet_export::{export_json, export_csv, export_paper_wallet};
-
-// Auto-detect and import
-let key = import_any("5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")?;
-
-// Export to various formats
-let json = export_json(&key, Network::Mainnet)?;
-let csv = export_csv(&keys, &["wif", "address", "pubkey"])?;
-let paper = export_paper_wallet(&key, Network::Mainnet)?;
+let recovered = Slip39::combine(&shares[0..3])?;
 ```
 
 ## 📚 Documentation
 
 - [API Documentation](https://docs.rs/rustywallet)
 - [ROADMAP](./ROADMAP.md) - Development roadmap and planned features
-- Each crate has its own README with detailed examples
+- [Getting Started Guide](./docs/getting-started/)
+- [Feature Guides](./docs/guides/)
+- [Advanced Topics](./docs/advanced/)
 
 ## 🔒 Security
 
@@ -225,6 +271,8 @@ let paper = export_paper_wallet(&key, Network::Mainnet)?;
 - Constant-time operations for cryptographic comparisons
 - No logging of sensitive data
 - Secure random number generation (CSPRNG)
+- BIP340 Schnorr signatures
+- FROST threshold signatures for distributed key management
 
 ## 🤝 Contributing
 

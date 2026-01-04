@@ -1,9 +1,9 @@
 [package]
 name = "rustywallet-tx"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["NirvaGold"]
-description = "Bitcoin transaction building, signing, and serialization with RBF and Taproot support"
+description = "Bitcoin transaction building, signing, and serialization with RBF, Taproot, MuSig2, FROST, and Silent Payment support"
 license = "MIT"
 repository = "https://github.com/nirvagold/rustywallet"
 documentation = "https://docs.rs/rustywallet-tx"
@@ -16,6 +16,9 @@ readme = "README.md"
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
 rustywallet-address = { version = "0.2", path = "../rustywallet-address" }
 rustywallet-taproot = { version = "0.1", path = "../rustywallet-taproot" }
+rustywallet-musig = { version = "0.1", path = "../rustywallet-musig" }
+rustywallet-frost = { version = "0.1", path = "../rustywallet-frost" }
+rustywallet-silent = { version = "0.1", path = "../rustywallet-silent" }
 
 # Crypto
 sha2 = "0.10"
@@ -30,6 +33,7 @@ bs58 = "0.5"
 
 [dev-dependencies]
 proptest = "1.0"
+rand = "0.8"
 
 [features]
 default = []

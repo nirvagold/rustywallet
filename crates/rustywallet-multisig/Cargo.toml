@@ -1,13 +1,13 @@
 [package]
 name = "rustywallet-multisig"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["NirvaGold"]
-description = "Bitcoin multi-signature wallet utilities with PSBT integration and MuSig2 support"
+description = "Bitcoin multi-signature wallet utilities with PSBT integration, MuSig2 and FROST support"
 license = "MIT"
 repository = "https://github.com/nirvagold/rustywallet"
 documentation = "https://docs.rs/rustywallet-multisig"
-keywords = ["bitcoin", "multisig", "cryptocurrency", "musig", "psbt"]
+keywords = ["bitcoin", "multisig", "cryptocurrency", "musig", "frost"]
 categories = ["cryptography::cryptocurrencies"]
 readme = "README.md"
 
@@ -15,6 +15,7 @@ readme = "README.md"
 # Internal crates
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
 rustywallet-address = { version = "0.2", path = "../rustywallet-address" }
+rustywallet-frost = { version = "0.1", path = "../rustywallet-frost" }
 
 # Crypto
 sha2 = "0.10"

@@ -1,6 +1,6 @@
 [package]
 name = "rustywallet-electrum"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["NirvaGold"]
 description = "Electrum protocol client for Bitcoin balance checking and UTXO fetching"
@@ -33,6 +33,11 @@ bitcoin = { version = "0.32", features = ["base64"] }
 
 # Logging
 tracing = "0.1"
+
+# Silent Payments
+rustywallet-silent = { path = "../rustywallet-silent" }
+rustywallet-keys = { path = "../rustywallet-keys" }
+secp256k1 = "0.29"
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full", "test-util"] }

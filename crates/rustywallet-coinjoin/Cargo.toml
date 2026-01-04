@@ -1,6 +1,6 @@
 [package]
 name = "rustywallet-coinjoin"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Rustywallet Contributors"]
 description = "CoinJoin and PayJoin (BIP78) utilities for rustywallet"
@@ -13,8 +13,8 @@ readme = "README.md"
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
-rustywallet-tx = { path = "../rustywallet-tx", version = "0.2" }
-rustywallet-psbt = { path = "../rustywallet-psbt", version = "0.1" }
+rustywallet-tx = { path = "../rustywallet-tx", version = "0.3" }
+rustywallet-psbt = { path = "../rustywallet-psbt", version = "0.2" }
 secp256k1 = { version = "0.29", features = ["rand-std", "global-context"] }
 sha2 = "0.10"
 hex = "0.4"

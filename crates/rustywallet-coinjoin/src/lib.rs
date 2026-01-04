@@ -96,6 +96,8 @@ pub mod error;
 pub mod mixer;
 pub mod payjoin;
 pub mod prelude;
+pub mod psbt_builder;
+pub mod psbt_payjoin;
 pub mod types;
 
 pub use builder::{CoinJoinBuilder, CoinJoinTransaction};
@@ -103,6 +105,8 @@ pub use coordinator::{CoinJoinSession, JoinResponse, SessionAnnouncement, Sessio
 pub use error::{CoinJoinError, Result};
 pub use mixer::{analyze_privacy, find_best_denomination, OutputMixer, PrivacyAnalysis};
 pub use payjoin::{PayJoinProposal, PayJoinReceiver, PayJoinRequest, PayJoinSender};
+pub use psbt_builder::{combine_participant_psbts, finalize_coinjoin_psbt, PsbtCoinJoinBuilder};
+pub use psbt_payjoin::PsbtPayJoin;
 pub use types::{FeeStrategy, InputRef, OutputDef, Participant};
 
 #[cfg(test)]

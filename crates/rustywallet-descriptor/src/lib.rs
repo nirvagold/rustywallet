@@ -1,12 +1,13 @@
 //! # rustywallet-descriptor
 //!
-//! Output descriptors (BIP380-386) for Bitcoin wallet development.
+//! Output descriptors (BIP380-386) for Bitcoin wallet development with full Taproot support.
 //!
 //! This crate provides functionality to:
 //! - Parse output descriptor strings
 //! - Derive addresses from descriptors
 //! - Generate script pubkeys
 //! - Support ranged descriptors with wildcards
+//! - Full Taproot descriptor support (BIP386)
 //!
 //! ## Supported Descriptors
 //!
@@ -17,9 +18,28 @@
 //! | `wpkh()` | Pay to witness pubkey hash (P2WPKH) | `wpkh(KEY)` |
 //! | `sh()` | Pay to script hash (P2SH) | `sh(wpkh(KEY))` |
 //! | `wsh()` | Pay to witness script hash (P2WSH) | `wsh(multi(2,KEY,KEY))` |
-//! | `tr()` | Pay to Taproot (P2TR) | `tr(KEY)` |
+//! | `tr()` | Pay to Taproot (P2TR) | `tr(KEY)` or `tr(KEY,{SCRIPT})` |
 //! | `multi()` | k-of-n multisig | `multi(2,KEY,KEY,KEY)` |
 //! | `sortedmulti()` | Sorted k-of-n multisig | `sortedmulti(2,KEY,KEY,KEY)` |
+//!
+//! ## Taproot Descriptors (BIP386)
+//!
+//! ```rust
+//! use rustywallet_descriptor::taproot::TaprootDescriptor;
+//! use rustywallet_address::Network;
+//!
+//! // Key-path only: tr(KEY)
+//! let desc = TaprootDescriptor::parse(
+//!     "tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)"
+//! ).unwrap();
+//! let address = desc.derive_address(0, Network::BitcoinMainnet).unwrap();
+//! assert!(address.starts_with("bc1p"));
+//!
+//! // Script-path: tr(KEY,{SCRIPT})
+//! let desc = TaprootDescriptor::parse(
+//!     "tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5,{pk(0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)})"
+//! ).unwrap();
+//! ```
 //!
 //! ## Example
 //!
@@ -74,6 +94,7 @@ pub mod descriptor;
 pub mod error;
 pub mod key;
 pub mod script;
+pub mod taproot;
 
 // Re-exports
 pub use address::{derive_address, derive_addresses};
@@ -82,6 +103,7 @@ pub use descriptor::Descriptor;
 pub use error::DescriptorError;
 pub use key::{parse_key, DescriptorKey, KeyOrigin, Wildcard};
 pub use script::{generate_script_pubkey, ScriptPubkey, ScriptType};
+pub use taproot::{TaprootDescriptor, TapDescriptorTree, TapDescriptorLeaf, TapScript};
 
 /// Prelude module for convenient imports
 pub mod prelude {
@@ -91,6 +113,7 @@ pub mod prelude {
     pub use crate::error::DescriptorError;
     pub use crate::key::{DescriptorKey, Wildcard};
     pub use crate::script::{ScriptPubkey, ScriptType};
+    pub use crate::taproot::{TaprootDescriptor, TapDescriptorTree, TapScript};
 }
 
 #[cfg(test)]

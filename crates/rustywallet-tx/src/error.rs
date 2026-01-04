@@ -75,7 +75,46 @@ pub enum TxError {
     /// Taproot error
     #[error("Taproot error: {0}")]
     TaprootError(String),
+
+    /// MuSig2 error
+    #[error("MuSig2 error: {0}")]
+    Musig2Error(String),
+
+    /// FROST error
+    #[error("FROST error: {0}")]
+    FrostError(String),
+
+    /// Silent Payment error
+    #[error("Silent Payment error: {0}")]
+    SilentPaymentError(String),
+
+    /// Insufficient signatures for threshold
+    #[error("Insufficient signatures: need {needed}, have {have}")]
+    InsufficientSignatures {
+        /// Number of signatures needed
+        needed: usize,
+        /// Number of signatures available
+        have: usize,
+    },
 }
 
 /// Result type alias for transaction operations.
 pub type Result<T> = std::result::Result<T, TxError>;
+
+impl From<rustywallet_musig::MusigError> for TxError {
+    fn from(e: rustywallet_musig::MusigError) -> Self {
+        TxError::Musig2Error(e.to_string())
+    }
+}
+
+impl From<rustywallet_frost::error::FrostError> for TxError {
+    fn from(e: rustywallet_frost::error::FrostError) -> Self {
+        TxError::FrostError(e.to_string())
+    }
+}
+
+impl From<rustywallet_silent::SilentPaymentError> for TxError {
+    fn from(e: rustywallet_silent::SilentPaymentError) -> Self {
+        TxError::SilentPaymentError(e.to_string())
+    }
+}

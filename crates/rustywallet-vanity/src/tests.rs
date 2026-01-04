@@ -245,3 +245,112 @@ fn test_config_validation() {
     // May succeed or hit max attempts, but shouldn't error on validation
     assert!(result.is_ok() || matches!(result, Err(VanityError::MaxAttemptsReached(_))));
 }
+
+// **Feature: ecosystem-upgrade-v2, Property 16: Taproot Vanity Match Validity**
+// **Validates: Requirements 13.1, 13.3**
+// For any found Taproot vanity match, the returned private key SHALL derive to the matched address.
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(100))]
+    
+    #[test]
+    fn prop_taproot_vanity_match_validity(seed in 0u64..1000) {
+        let _ = seed;
+        
+        // Search for a Taproot address with bc1p prefix
+        let result = VanityGenerator::new()
+            .pattern("bc1p")
+            .address_type(AddressType::P2TR)
+            .max_attempts(100)
+            .search();
+        
+        if let Ok(result) = result {
+            // Verify the address starts with bc1p (Taproot prefix)
+            prop_assert!(
+                result.address.starts_with("bc1p"),
+                "Taproot address should start with bc1p, got: {}",
+                result.address
+            );
+            
+            // Verify the address matches the pattern
+            prop_assert!(
+                result.matched_pattern.matches(&result.address, true),
+                "Address {} should match pattern {}",
+                result.address,
+                result.matched_pattern
+            );
+            
+            // Re-derive address from private key to verify consistency
+            let derived = AddressType::P2TR
+                .derive_address(&result.private_key, false)
+                .unwrap();
+            
+            prop_assert_eq!(
+                result.address,
+                derived,
+                "Derived Taproot address should match result address"
+            );
+            
+            // Verify the public key is valid
+            let pubkey = result.private_key.public_key();
+            prop_assert!(
+                !pubkey.to_compressed().is_empty(),
+                "Public key should be valid"
+            );
+        }
+    }
+}
+
+// Additional test for Taproot address generation
+#[test]
+fn test_taproot_address_generation() {
+    // Generate a Taproot vanity address
+    let result = VanityGenerator::new()
+        .pattern("bc1p")
+        .address_type(AddressType::P2TR)
+        .max_attempts(100)
+        .search();
+    
+    assert!(result.is_ok());
+    let result = result.unwrap();
+    
+    // Verify it's a valid Taproot address
+    assert!(result.address.starts_with("bc1p"));
+    assert!(result.address.len() == 62); // Taproot addresses are 62 chars
+    
+    // Verify key derivation consistency
+    let derived = AddressType::P2TR
+        .derive_address(&result.private_key, false)
+        .unwrap();
+    assert_eq!(result.address, derived);
+}
+
+// Test Taproot difficulty estimation
+#[test]
+fn test_taproot_difficulty_estimation() {
+    let gen = VanityGenerator::new()
+        .pattern("bc1ptest")
+        .address_type(AddressType::P2TR);
+    
+    let estimates = gen.estimate_difficulty();
+    assert_eq!(estimates.len(), 1);
+    
+    let est = &estimates[0];
+    assert!(est.expected_attempts > 0);
+    assert!(est.probability > 0.0);
+    assert!(est.probability < 1.0);
+}
+
+// Test Taproot testnet addresses
+#[test]
+fn test_taproot_testnet() {
+    let result = VanityGenerator::new()
+        .pattern("tb1p")
+        .address_type(AddressType::P2TR)
+        .testnet()
+        .max_attempts(100)
+        .search();
+    
+    assert!(result.is_ok());
+    let result = result.unwrap();
+    assert!(result.address.starts_with("tb1p"));
+}

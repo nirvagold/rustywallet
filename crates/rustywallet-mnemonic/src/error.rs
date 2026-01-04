@@ -28,4 +28,8 @@ pub enum MnemonicError {
     /// Invalid private key derived from seed
     #[error("Invalid private key derived from seed")]
     InvalidPrivateKey,
+
+    /// Language detection failed - words from multiple languages or unknown words
+    #[error("Could not detect language: words may be from multiple languages")]
+    LanguageDetectionFailed,
 }

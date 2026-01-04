@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-01-04
+
+### Added
+- **FROST Threshold Signatures** (t-of-n)
+  - `FrostMultisig` struct for managing FROST threshold wallets
+  - `FrostSigningRound` for coordinating signing rounds
+  - `FrostParticipant` for individual signer operations
+  - `FrostPsbtBuilder` for hardware wallet compatible PSBT workflows
+  - P2TR address generation from FROST group public key
+  - Integration with `rustywallet-frost` crate
+  - Support for any t-of-n threshold configuration
+  - Commitment and partial signature collection
+  - Signature aggregation into valid Schnorr signatures
+
+### Changed
+- Updated version to 0.3.0
+- Added `rustywallet-frost` dependency
+- Updated keywords to include "frost"
+- Enhanced documentation with FROST examples
+- Updated prelude to export FROST types
+
 ## [0.2.0] - 2026-01-03
 
 ### Added

@@ -51,6 +51,7 @@ pub mod input;
 pub mod output;
 pub mod psbt;
 pub mod serialize;
+pub mod threshold;
 pub mod types;
 
 mod combiner;

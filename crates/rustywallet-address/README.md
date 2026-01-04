@@ -14,6 +14,7 @@ Comprehensive cryptocurrency address generation and validation library for Bitco
 - **Bitcoin Taproot (P2TR)** - Pay-to-Taproot addresses (`bc1p...` mainnet, `tb1p...` testnet)
 - **Silent Payments (BIP352)** - Privacy-preserving addresses (`sp1...` mainnet, `tsp1...` testnet)
 - **Ethereum** - Ethereum addresses with EIP-55 checksum validation (`0x...`)
+- **Descriptor Derivation** - Derive addresses from output descriptors (BIP380-386)
 - **Multi-network support** - Bitcoin mainnet, testnet, regtest, signet
 - **Address validation** - Comprehensive validation with detailed error reporting
 - **Type-safe API** - Rust's type system prevents address format errors
@@ -26,7 +27,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rustywallet-address = "0.2"
+rustywallet-address = "0.3"
 rustywallet-keys = "0.1"
 ```
 
@@ -55,6 +56,80 @@ println!("P2TR: {}", p2tr); // bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72
 // Ethereum
 let eth = EthereumAddress::from_public_key(&public_key)?;
 println!("Ethereum: {}", eth); // 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed
+```
+
+## Descriptor-Based Derivation
+
+Derive addresses from output descriptors (BIP380-386):
+
+```rust
+use rustywallet_address::prelude::*;
+
+// Derive from wpkh descriptor
+let addr = Address::from_descriptor(
+    "wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)",
+    0,
+    Network::BitcoinMainnet,
+)?;
+assert!(addr.to_string().starts_with("bc1q"));
+
+// Derive from Taproot descriptor
+let addr = Address::from_descriptor(
+    "tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)",
+    0,
+    Network::BitcoinMainnet,
+)?;
+assert!(addr.to_string().starts_with("bc1p"));
+
+// Derive from nested SegWit descriptor
+let addr = Address::from_descriptor(
+    "sh(wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5))",
+    0,
+    Network::BitcoinMainnet,
+)?;
+assert!(addr.to_string().starts_with("3"));
+
+// Derive multiple addresses from ranged descriptor
+let addrs = Address::from_descriptor_range(
+    "wpkh(xpub.../0/*)",
+    0,    // start index
+    10,   // count
+    Network::BitcoinMainnet,
+)?;
+```
+
+### Supported Descriptor Types
+
+| Type | Description | Address Format |
+|------|-------------|----------------|
+| `pkh()` | Pay to pubkey hash | P2PKH (1...) |
+| `wpkh()` | Pay to witness pubkey hash | P2WPKH (bc1q...) |
+| `sh(wpkh())` | Nested SegWit | P2SH-P2WPKH (3...) |
+| `tr()` | Pay to Taproot | P2TR (bc1p...) |
+| `wsh()` | Pay to witness script hash | P2WSH (bc1q...) |
+| `multi()` | k-of-n multisig | Depends on wrapper |
+| `sortedmulti()` | Sorted k-of-n multisig | Depends on wrapper |
+
+### Descriptor Utilities
+
+```rust
+use rustywallet_address::descriptor::*;
+
+// Get descriptor type
+let desc_type = get_descriptor_type("wpkh(KEY)")?;
+assert_eq!(desc_type, DescriptorType::Wpkh);
+assert!(desc_type.is_segwit());
+
+// Check for wildcard
+let has_wildcard = descriptor_has_wildcard("wpkh(xpub.../0/*)")?;
+assert!(has_wildcard);
+
+// Direct address derivation
+let addr = derive_address_from_descriptor(
+    "tr(KEY)",
+    0,
+    Network::BitcoinMainnet,
+)?;
 ```
 
 ## Address Types
@@ -183,9 +258,8 @@ assert!(P2PKHAddress::validate_network(testnet_addr, Network::BitcoinTestnet).is
 
 // Invalid addresses return detailed errors
 match Address::validate("invalid_address") {
-    Err(AddressError::InvalidFormat) => println!("Invalid format"),
-    Err(AddressError::InvalidChecksum) => println!("Invalid checksum"),
-    Err(AddressError::UnsupportedNetwork) => println!("Unsupported network"),
+    Err(AddressError::InvalidFormat(_)) => println!("Invalid format"),
+    Err(AddressError::ChecksumMismatch) => println!("Invalid checksum"),
     _ => {}
 }
 ```
@@ -211,6 +285,8 @@ match Address::validate("invalid_address") {
 - `EthereumAddress` - Ethereum addresses
 - `Network` - Supported network types
 - `AddressError` - Comprehensive error types
+- `DescriptorType` - Supported descriptor types
+- `AddressFromDescriptor` - Trait for descriptor-based derivation
 
 ### Key Methods
 
@@ -218,6 +294,8 @@ match Address::validate("invalid_address") {
 // Address creation
 Address::from_str(s: &str) -> Result<Address, AddressError>
 Address::from_public_key(pk: &PublicKey, network: Network) -> Result<Address, AddressError>
+Address::from_descriptor(desc: &str, index: u32, network: Network) -> Result<Address, AddressError>
+Address::from_descriptor_range(desc: &str, start: u32, count: u32, network: Network) -> Result<Vec<Address>, AddressError>
 
 // Validation
 Address::validate(s: &str) -> Result<(), AddressError>
@@ -240,11 +318,9 @@ address.as_bytes() -> &[u8]
 use rustywallet_address::AddressError;
 
 match Address::validate("invalid") {
-    Err(AddressError::InvalidFormat) => "Invalid address format",
-    Err(AddressError::InvalidChecksum) => "Checksum validation failed", 
-    Err(AddressError::InvalidLength) => "Invalid address length",
-    Err(AddressError::UnsupportedNetwork) => "Network not supported",
-    Err(AddressError::InvalidEncoding) => "Encoding error",
+    Err(AddressError::InvalidFormat(_)) => "Invalid address format",
+    Err(AddressError::ChecksumMismatch) => "Checksum validation failed", 
+    Err(AddressError::UnsupportedAddressType(_)) => "Address type not supported",
     Ok(_) => "Valid address",
 };
 ```

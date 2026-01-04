@@ -3,12 +3,13 @@
 //! Lightning Network utilities for Bitcoin wallets.
 //!
 //! This crate provides tools for working with the Lightning Network,
-//! including BOLT11 invoice parsing/creation, payment hash handling,
+//! including BOLT11 invoice parsing/creation, BOLT12 offers, payment hash handling,
 //! and node identity derivation.
 //!
 //! ## Features
 //!
 //! - **BOLT11 Invoices**: Parse and create Lightning invoices
+//! - **BOLT12 Offers**: Parse and create reusable payment offers
 //! - **Payment Hashes**: Generate and verify payment hashes/preimages
 //! - **Node Identity**: Derive node ID from HD seed
 //! - **Route Hints**: Parse and create route hints
@@ -28,6 +29,24 @@
 //! assert!(hash.verify(&preimage));
 //! ```
 //!
+//! ## BOLT12 Offers
+//!
+//! ```rust
+//! use rustywallet_lightning::bolt12::{Bolt12Offer, OfferBuilder};
+//!
+//! // Create an offer
+//! let offer = OfferBuilder::new()
+//!     .description("Coffee")
+//!     .amount_msats(10_000)
+//!     .build()
+//!     .unwrap();
+//! println!("Offer: {}", offer.encode());
+//!
+//! // Parse an offer
+//! let parsed = Bolt12Offer::parse(&offer.encode()).unwrap();
+//! assert_eq!(parsed.description(), "Coffee");
+//! ```
+//!
 //! ## Node Identity
 //!
 //! ```rust
@@ -40,6 +59,7 @@
 //! ```
 
 pub mod bolt11;
+pub mod bolt12;
 pub mod channel;
 pub mod error;
 pub mod node;
@@ -52,6 +72,7 @@ mod tests;
 
 // Re-export main types
 pub use bolt11::{Bolt11Invoice, InvoiceBuilder, InvoiceData};
+pub use bolt12::{Bolt12Offer, OfferBuilder, OfferAmount, BlindedPath};
 pub use channel::ChannelPoint;
 pub use error::LightningError;
 pub use node::NodeIdentity;

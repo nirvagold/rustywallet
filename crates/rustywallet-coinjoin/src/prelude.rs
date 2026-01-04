@@ -17,4 +17,6 @@ pub use crate::mixer::{
     PrivacyAnalysis, DENOMINATIONS,
 };
 pub use crate::payjoin::{PayJoinProposal, PayJoinReceiver, PayJoinRequest, PayJoinSender};
+pub use crate::psbt_builder::{combine_participant_psbts, finalize_coinjoin_psbt, PsbtCoinJoinBuilder};
+pub use crate::psbt_payjoin::PsbtPayJoin;
 pub use crate::types::{FeeStrategy, InputRef, OutputDef, Participant};

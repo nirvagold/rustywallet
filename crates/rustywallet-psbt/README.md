@@ -13,12 +13,14 @@ PSBT (Partially Signed Bitcoin Transaction) implementation for Bitcoin wallet de
 - **All BIP174 Roles** - Creator, Updater, Signer, Combiner, Finalizer, Extractor
 - **Multiple Input Types** - P2PKH, P2WPKH, P2SH, P2WSH, P2TR
 - **Hardware Wallet Compatible** - Interoperable with Ledger, Trezor, Coldcard
+- **MuSig2 Support** - Store and combine MuSig2 partial signatures in PSBTs
+- **FROST Support** - Store FROST threshold signatures with signer identifiers
 
 ## Installation
 
 ```toml
 [dependencies]
-rustywallet-psbt = "0.1"
+rustywallet-psbt = "0.2"
 ```
 
 ## Quick Start
@@ -172,6 +174,53 @@ match Psbt::from_base64(input) {
         eprintln!("Error: {}", e);
     }
 }
+```
+
+## MuSig2 and FROST Support
+
+### MuSig2 Partial Signatures
+
+```rust
+use rustywallet_psbt::Psbt;
+use rustywallet_psbt::threshold::{
+    add_musig2_partial_sig, get_musig2_partial_sigs,
+    combine_musig2_psbt, finalize_threshold_psbt,
+};
+use rustywallet_musig::signing::PartialSignature;
+
+let mut psbt = Psbt::from_base64("...")?;
+
+// Add MuSig2 partial signature from signer 1
+let partial_sig = PartialSignature { s: sig_bytes, signer_index: 0 };
+add_musig2_partial_sig(&mut psbt, 0, &partial_sig, &pubkey)?;
+
+// Combine PSBTs from multiple signers
+let combined = combine_musig2_psbt(&[psbt1, psbt2])?;
+
+// Finalize with aggregated nonce
+finalize_threshold_psbt(&mut combined, 0, 2, &agg_nonce_r)?;
+```
+
+### FROST Threshold Signatures
+
+```rust
+use rustywallet_psbt::Psbt;
+use rustywallet_psbt::threshold::{
+    add_frost_partial_sig, get_frost_partial_sigs,
+    finalize_threshold_psbt,
+};
+use rustywallet_frost::signing::SignatureShare;
+use rustywallet_frost::identifier::Identifier;
+
+let mut psbt = Psbt::from_base64("...")?;
+
+// Add FROST partial signature from participant
+let signer_id = Identifier::new(1)?;
+let share = SignatureShare::new(signer_id, share_bytes);
+add_frost_partial_sig(&mut psbt, 0, &share, &signer_id)?;
+
+// Finalize when threshold is met
+finalize_threshold_psbt(&mut psbt, 0, threshold, &group_commitment)?;
 ```
 
 ## License
