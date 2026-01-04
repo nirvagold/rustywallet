@@ -79,7 +79,7 @@ impl CountingBloomFilter {
     /// let filter = CountingBloomFilter::new(100_000, 0.01);
     /// ```
     pub fn new(expected_items: usize, false_positive_rate: f64) -> Self {
-        let fpr = false_positive_rate.max(1e-10).min(0.5);
+        let fpr = false_positive_rate.clamp(1e-10, 0.5);
         let n = expected_items.max(1) as f64;
 
         // Optimal number of bits: m = -n * ln(p) / (ln(2)^2)
@@ -92,7 +92,7 @@ impl CountingBloomFilter {
         let num_hashes = num_hashes.clamp(3, 20);
 
         // Allocate counter array (2 counters per byte using nibbles)
-        let num_bytes = (num_counters + 1) / 2;
+        let num_bytes = num_counters.div_ceil(2);
 
         Self {
             counters: vec![0u8; num_bytes],
@@ -111,7 +111,7 @@ impl CountingBloomFilter {
     pub fn with_params(num_counters: usize, num_hashes: usize) -> Self {
         let num_counters = num_counters.max(64);
         let num_hashes = num_hashes.clamp(1, 20);
-        let num_bytes = (num_counters + 1) / 2;
+        let num_bytes = num_counters.div_ceil(2);
 
         Self {
             counters: vec![0u8; num_bytes],

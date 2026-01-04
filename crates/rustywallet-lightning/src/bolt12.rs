@@ -213,7 +213,7 @@ impl Bolt12Offer {
             match tlv_type {
                 2 => {
                     // chains
-                    if value.len() % 32 == 0 {
+                    if value.len().is_multiple_of(32) {
                         for chunk in value.chunks(32) {
                             let mut chain = [0u8; 32];
                             chain.copy_from_slice(chunk);

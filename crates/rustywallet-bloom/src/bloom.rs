@@ -48,7 +48,7 @@ impl BloomFilter {
     /// let filter = BloomFilter::new(1_000_000, 0.01);
     /// ```
     pub fn new(expected_items: usize, false_positive_rate: f64) -> Self {
-        let fpr = false_positive_rate.max(1e-15).min(0.5); // Allow ultra-low FPR
+        let fpr = false_positive_rate.clamp(1e-15, 0.5); // Allow ultra-low FPR
         let n = expected_items.max(1) as f64;
         
         // Optimal number of bits: m = -n * ln(p) / (ln(2)^2)
@@ -62,7 +62,7 @@ impl BloomFilter {
         let num_hashes = num_hashes.clamp(3, 50);
         
         // Allocate bit array (using u64 chunks)
-        let num_words = (num_bits + 63) / 64;
+        let num_words = num_bits.div_ceil(64);
         
         Self {
             bits: vec![0u64; num_words],
@@ -83,7 +83,7 @@ impl BloomFilter {
     pub fn with_params(num_bits: usize, num_hashes: usize) -> Self {
         let num_bits = num_bits.max(64);
         let num_hashes = num_hashes.clamp(1, 16);
-        let num_words = (num_bits + 63) / 64;
+        let num_words = num_bits.div_ceil(64);
         
         Self {
             bits: vec![0u64; num_words],
