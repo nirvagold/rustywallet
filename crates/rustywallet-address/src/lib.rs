@@ -39,28 +39,6 @@
 //! println!("Ethereum: {}", eth_addr); // 0x...
 //! ```
 //!
-//! ## Descriptor-Based Derivation
-//!
-//! Derive addresses from output descriptors (BIP380-386):
-//!
-//! ```rust,ignore
-//! use rustywallet_address::{Address, Network};
-//! use rustywallet_address::descriptor::AddressFromDescriptor;
-//!
-//! // Derive from wpkh descriptor
-//! let addr = Address::from_descriptor(
-//!     "wpkh(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)",
-//!     0,
-//!     Network::BitcoinMainnet,
-//! ).unwrap();
-//!
-//! // Derive from Taproot descriptor
-//! let addr = Address::from_descriptor(
-//!     "tr(02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)",
-//!     0,
-//!     Network::BitcoinMainnet,
-//! ).unwrap();
-//! ```
 //!
 //! ## Address Validation
 //!
@@ -94,7 +72,6 @@
 
 pub mod address;
 pub mod bitcoin;
-pub mod descriptor;
 pub mod encoding;
 pub mod error;
 pub mod ethereum;
@@ -105,10 +82,6 @@ pub mod silent_payments;
 // Re-export main types at crate root
 pub use address::{Address, AddressFormat};
 pub use bitcoin::{BitcoinAddress, BitcoinAddressType, P2PKHAddress, P2TRAddress, P2WPKHAddress};
-pub use descriptor::{
-    AddressFromDescriptor, DescriptorType, derive_address_from_descriptor,
-    derive_addresses_from_descriptor, descriptor_has_wildcard, get_descriptor_type,
-};
 pub use error::AddressError;
 pub use ethereum::EthereumAddress;
 pub use network::Network;

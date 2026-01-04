@@ -21,8 +21,8 @@ signer = ["dep:rustywallet-signer", "keys"]
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1", optional = true }
-rustywallet-address = { path = "../rustywallet-address", version = "0.2", optional = true }
-rustywallet-mnemonic = { path = "../rustywallet-mnemonic", version = "0.1", optional = true }
+rustywallet-address = { path = "../rustywallet-address", version = "0.3", optional = true }
+rustywallet-mnemonic = { path = "../rustywallet-mnemonic", version = "0.2", optional = true }
 rustywallet-hd = { path = "../rustywallet-hd", version = "0.3", optional = true }
 rustywallet-signer = { path = "../rustywallet-signer", version = "0.2", optional = true }
 

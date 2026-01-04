@@ -11,7 +11,6 @@ categories = ["cryptography", "encoding"]
 
 [dependencies]
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
-rustywallet-descriptor = { version = "0.2", path = "../rustywallet-descriptor" }
 sha2 = { workspace = true }
 ripemd = "0.1"
 bech32 = "0.11"

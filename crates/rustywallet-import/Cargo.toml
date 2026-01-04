@@ -14,9 +14,9 @@ readme = "README.md"
 [dependencies]
 # Internal crates
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
-rustywallet-mnemonic = { version = "0.1", path = "../rustywallet-mnemonic" }
+rustywallet-mnemonic = { version = "0.2", path = "../rustywallet-mnemonic" }
 rustywallet-hd = { version = "0.3", path = "../rustywallet-hd" }
-rustywallet-address = { version = "0.2", path = "../rustywallet-address" }
+rustywallet-address = { version = "0.3", path = "../rustywallet-address" }
 rustywallet-descriptor = { version = "0.2", path = "../rustywallet-descriptor" }
 
 # Crypto

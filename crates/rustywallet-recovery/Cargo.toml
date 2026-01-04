@@ -13,9 +13,9 @@ readme = "README.md"
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
-rustywallet-address = { path = "../rustywallet-address", version = "0.2" }
+rustywallet-address = { path = "../rustywallet-address", version = "0.3" }
 rustywallet-hd = { path = "../rustywallet-hd", version = "0.3" }
-rustywallet-mnemonic = { path = "../rustywallet-mnemonic", version = "0.1" }
+rustywallet-mnemonic = { path = "../rustywallet-mnemonic", version = "0.2" }
 rustywallet-electrum = { path = "../rustywallet-electrum", version = "0.3" }
 rustywallet-descriptor = { path = "../rustywallet-descriptor", version = "0.2" }
 thiserror = "1.0"

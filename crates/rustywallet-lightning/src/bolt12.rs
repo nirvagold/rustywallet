@@ -159,9 +159,10 @@ impl Bolt12Offer {
         let (hrp, data) = bech32::decode(&s)
             .map_err(|e| LightningError::InvalidFormat(format!("Bech32 decode error: {}", e)))?;
 
-        if hrp.as_str() != "lno" {
+        let hrp_str = hrp.to_string();
+        if hrp_str != "lno" {
             return Err(LightningError::InvalidFormat(
-                format!("Invalid HRP: expected 'lno', got '{}'", hrp)
+                format!("Invalid HRP: expected 'lno', got '{}'", hrp_str)
             ));
         }
 

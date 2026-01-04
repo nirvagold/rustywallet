@@ -1745,7 +1745,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-address"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bech32",
  "bs58",
@@ -1996,7 +1996,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-lightning"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bech32",
  "hex",
@@ -2029,7 +2029,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-mnemonic"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "hex",
  "hmac",

@@ -5,6 +5,10 @@ use thiserror::Error;
 /// Errors that can occur during Lightning operations.
 #[derive(Debug, Error)]
 pub enum LightningError {
+    /// Invalid format (generic).
+    #[error("Invalid format: {0}")]
+    InvalidFormat(String),
+
     /// Invalid BOLT11 invoice format.
     #[error("Invalid BOLT11 invoice: {0}")]
     InvalidInvoice(String),

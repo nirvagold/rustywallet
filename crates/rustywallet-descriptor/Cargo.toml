@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 rustywallet-keys = { path = "../rustywallet-keys", version = "0.1" }
-rustywallet-address = { path = "../rustywallet-address", version = "0.2" }
+rustywallet-address = { path = "../rustywallet-address", version = "0.3" }
 rustywallet-hd = { path = "../rustywallet-hd", version = "0.3" }
 rustywallet-taproot = { path = "../rustywallet-taproot", version = "0.1" }
 thiserror = "1.0"

@@ -14,7 +14,7 @@ readme = "README.md"
 [dependencies]
 # Internal crates
 rustywallet-keys = { version = "0.1", path = "../rustywallet-keys" }
-rustywallet-address = { version = "0.2", path = "../rustywallet-address" }
+rustywallet-address = { version = "0.3", path = "../rustywallet-address" }
 
 # Crypto (for BIP38)
 sha2 = "0.10"
