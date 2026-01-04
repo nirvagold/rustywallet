@@ -79,17 +79,18 @@ pub async fn check_btc_balance(address: &str) -> Result<BitcoinBalance, CheckerE
 
     // Try blockstream.info first (supports all address types)
     match check_via_blockstream(address).await {
-        Ok(balance) => return Ok(balance),
+        Ok(balance) => Ok(balance),
         Err(e) => {
             // Fallback to blockchain.info for legacy addresses
             if address.starts_with('1') || address.starts_with('3') {
                 match check_via_blockchain_info(address).await {
-                    Ok(balance) => return Ok(balance),
-                    Err(_) => return Err(e),
+                    Ok(balance) => Ok(balance),
+                    Err(_) => Err(e),
                 }
+            } else {
+                // For segwit/taproot, return the blockstream error or 0 balance
+                Err(e)
             }
-            // For segwit/taproot, return the blockstream error or 0 balance
-            return Err(e);
         }
     }
 }

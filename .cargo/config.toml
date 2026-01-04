@@ -1,0 +1,6 @@
+# Enable native CPU optimizations for maximum performance
+[build]
+rustflags = ["-C", "target-cpu=native"]
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-cpu=native", "-C", "target-feature=+avx2,+bmi2"]

@@ -5,9 +5,13 @@ use thiserror::Error;
 /// Errors that can occur when checking balances
 #[derive(Debug, Error)]
 pub enum CheckerError {
-    /// Network/HTTP error
+    /// Network/HTTP error from reqwest
     #[error("Network error: {0}")]
     Network(#[from] reqwest::Error),
+
+    /// Generic network/IO error
+    #[error("IO error: {0}")]
+    IoError(String),
 
     /// Invalid address format
     #[error("Invalid address: {0}")]

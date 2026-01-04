@@ -4,7 +4,6 @@
 
 use crate::bitcoin::BitcoinBalance;
 use crate::error::CheckerError;
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
@@ -278,11 +277,8 @@ impl ElectrumChecker {
             TcpStream::connect(&addr),
         )
         .await
-        .map_err(|_| CheckerError::Network(std::io::Error::new(
-            std::io::ErrorKind::TimedOut,
-            "Connection timeout",
-        ).into()))?
-        .map_err(|e| CheckerError::Network(e.into()))?;
+        .map_err(|_| CheckerError::IoError("Connection timeout".to_string()))?
+        .map_err(|e| CheckerError::IoError(e.to_string()))?;
         
         let (reader, mut writer) = stream.into_split();
         let mut reader = BufReader::new(reader);
@@ -296,14 +292,14 @@ impl ElectrumChecker {
         });
         
         writer.write_all(request.to_string().as_bytes()).await
-            .map_err(|e| CheckerError::Network(e.into()))?;
+            .map_err(|e| CheckerError::IoError(e.to_string()))?;
         writer.write_all(b"\n").await
-            .map_err(|e| CheckerError::Network(e.into()))?;
+            .map_err(|e| CheckerError::IoError(e.to_string()))?;
         
         // Read response
         let mut response = String::new();
         reader.read_line(&mut response).await
-            .map_err(|e| CheckerError::Network(e.into()))?;
+            .map_err(|e| CheckerError::IoError(e.to_string()))?;
         
         let json: serde_json::Value = serde_json::from_str(&response)
             .map_err(|e| CheckerError::ParseError(e.to_string()))?;
@@ -372,15 +368,15 @@ fn address_to_script(address: &str) -> Result<Vec<u8>, CheckerError> {
     // P2PKH (1...)
     if address.starts_with('1') {
         let decoded = bs58::decode(address)
-            .with_check(None)
             .into_vec()
             .map_err(|_| CheckerError::InvalidAddress(address.to_string()))?;
         
-        if decoded.len() != 21 {
+        // Base58Check: 1 byte version + 20 bytes hash + 4 bytes checksum = 25 bytes
+        if decoded.len() != 25 {
             return Err(CheckerError::InvalidAddress(address.to_string()));
         }
         
-        let pubkey_hash = &decoded[1..];
+        let pubkey_hash = &decoded[1..21];
         let mut script = vec![0x76, 0xa9, 0x14]; // OP_DUP OP_HASH160 PUSH20
         script.extend_from_slice(pubkey_hash);
         script.extend_from_slice(&[0x88, 0xac]); // OP_EQUALVERIFY OP_CHECKSIG
@@ -391,15 +387,15 @@ fn address_to_script(address: &str) -> Result<Vec<u8>, CheckerError> {
     // P2SH (3...)
     if address.starts_with('3') {
         let decoded = bs58::decode(address)
-            .with_check(None)
             .into_vec()
             .map_err(|_| CheckerError::InvalidAddress(address.to_string()))?;
         
-        if decoded.len() != 21 {
+        // Base58Check: 1 byte version + 20 bytes hash + 4 bytes checksum = 25 bytes
+        if decoded.len() != 25 {
             return Err(CheckerError::InvalidAddress(address.to_string()));
         }
         
-        let script_hash = &decoded[1..];
+        let script_hash = &decoded[1..21];
         let mut script = vec![0xa9, 0x14]; // OP_HASH160 PUSH20
         script.extend_from_slice(script_hash);
         script.push(0x87); // OP_EQUAL
@@ -409,7 +405,7 @@ fn address_to_script(address: &str) -> Result<Vec<u8>, CheckerError> {
     
     // Bech32 (bc1...)
     if address.starts_with("bc1") || address.starts_with("tb1") {
-        let (hrp, data) = bech32_decode(address)?;
+        let (_hrp, data) = bech32_decode(address)?;
         
         if data.is_empty() {
             return Err(CheckerError::InvalidAddress(address.to_string()));
