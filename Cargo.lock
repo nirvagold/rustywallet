@@ -1787,7 +1787,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-bloom"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "proptest",
 ]
@@ -1996,7 +1996,7 @@ dependencies = [
 
 [[package]]
 name = "rustywallet-lightning"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "bech32",
  "hex",
