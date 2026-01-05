@@ -1,0 +1,20 @@
+[package]
+name = "rustywallet-bech32-demo"
+version = "0.2.0"
+edition = "2021"
+description = "Bech32 address checker - P2WPKH (bc1q) and P2TR (bc1p) only - SIMD optimized"
+
+[dependencies]
+rustywallet-keys = { path = "../../crates/rustywallet-keys" }
+rustywallet-bloom = { path = "../../crates/rustywallet-bloom" }
+rustywallet-checker = { path = "../../crates/rustywallet-checker" }
+k256 = { version = "0.13", features = ["arithmetic"] }
+num_cpus = "1.16"
+ctrlc = "3.4"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+sha2 = "0.10"
+ripemd = "0.1"
+crossbeam-channel = "0.5"
+rand = "0.8"
+hex = "0.4"
+rayon = "1.10"

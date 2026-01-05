@@ -1937,6 +1937,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-bech32-demo"
+version = "0.2.0"
+dependencies = [
+ "crossbeam-channel",
+ "ctrlc",
+ "hex",
+ "k256",
+ "num_cpus",
+ "rand 0.8.5",
+ "rayon",
+ "ripemd",
+ "rustywallet-bloom",
+ "rustywallet-checker",
+ "rustywallet-keys",
+ "sha2",
+ "tokio",
+]
+
+[[package]]
 name = "rustywallet-bloom"
 version = "0.2.1"
 dependencies = [

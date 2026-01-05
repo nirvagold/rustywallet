@@ -1,0 +1,37 @@
+[package]
+name = "rustywallet-checker-demo"
+version = "0.3.0"
+edition = "2021"
+
+[dependencies]
+rustywallet-keys = { path = "../../crates/rustywallet-keys" }
+rustywallet-address = { path = "../../crates/rustywallet-address" }
+rustywallet-bloom = { path = "../../crates/rustywallet-bloom" }
+rustywallet-checker = { path = "../../crates/rustywallet-checker" }
+# EC operations - use k256 for fast point addition
+k256 = { version = "0.13", features = ["arithmetic"] }
+# secp256k1 for compatibility
+secp256k1 = { version = "0.29", features = ["rand", "lowmemory"] }
+num_cpus = "1.16"
+ctrlc = "3.4"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+# SHA256 hashing (pure Rust, auto-vectorized)
+sha2 = "0.10"
+ripemd = "0.1"
+bs58 = "0.5"
+crossbeam-channel = "0.5"
+parking_lot = "0.12"
+rand = "0.8"
+# Memory alignment
+aligned = "0.4"
+hex = "0.4"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+target-cpu = "native"
+
+[profile.release.build-override]
+opt-level = 3

@@ -23,8 +23,10 @@ Thumbs.db
 # Kiro
 .kiro/
 
-# Demo projects (temporary)
-examples/
+# Demo projects (temporary - except bech32-demo)
+examples/*
+!examples/rustywallet-bech32-demo/
+!examples/rustywallet-checker-demo/
 
 # Address files
 addresses.txt
