@@ -1,0 +1,11 @@
+[package]
+name = "rustywallet-generator-demo"
+version = "0.2.0"
+edition = "2021"
+description = "Demo showcasing rustywallet ecosystem features"
+
+[dependencies]
+rustywallet-mnemonic = { path = "../../crates/rustywallet-mnemonic" }
+rustywallet-hd = { path = "../../crates/rustywallet-hd" }
+rustywallet-keys = { path = "../../crates/rustywallet-keys" }
+rustywallet-address = { path = "../../crates/rustywallet-address" }

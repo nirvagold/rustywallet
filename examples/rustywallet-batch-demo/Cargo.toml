@@ -1,0 +1,9 @@
+[package]
+name = "rustywallet-batch-demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rustywallet-batch = { path = "../../crates/rustywallet-batch" }
+rustywallet-keys = { path = "../../crates/rustywallet-keys" }
+hex = "0.4"

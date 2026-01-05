@@ -1,0 +1,8 @@
+[package]
+name = "rustywallet-vanity-demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rustywallet-vanity = { path = "../../crates/rustywallet-vanity" }
+rustywallet-keys = { path = "../../crates/rustywallet-keys" }
