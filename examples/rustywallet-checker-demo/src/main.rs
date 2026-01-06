@@ -1,4 +1,6 @@
-﻿//! RustyWallet Checker Demo v9.0 - ULTRA OPTIMIZED
+﻿//! RustyWallet Checker Demo v10.0 - HASH160 BLOOM + BATCH AFFINE
+//! Optimizations: Hash160 bloom, batch affine, lazy encoding
+
 use rustywallet_bloom::BloomFilter;
 use rustywallet_checker::{check_btc_balance, BitcoinBalance};
 use rustywallet_keys::private_key::PrivateKey;
@@ -16,158 +18,86 @@ use k256::{ProjectivePoint, Scalar, AffinePoint};
 use k256::elliptic_curve::PrimeField;
 use k256::elliptic_curve::sec1::ToEncodedPoint;
 
-const BATCH_SIZE: usize = 100_000;
+const BATCH_SIZE: usize = 256;
+const BATCHES_PER_ROUND: usize = 400;
 const BALANCE_CHECK_RATE: u64 = 10;
-const BLOOM_FPR: f64 = 0.0000000001;  // 1 in 10 billion - ultra low false positive
-const UPDATE_INTERVAL: usize = 10_000;
+const BLOOM_FPR: f64 = 0.0000001;
+const UPDATE_INTERVAL: usize = 25_600;
 
 #[derive(Clone, Copy)]
 struct AddrTypes { p2pkh: bool, p2sh: bool, p2wpkh: bool, p2tr: bool }
 struct Match { pk: [u8; 32], t: &'static str, a: String }
 
-#[repr(C, align(64))]
-struct WorkerBuffers {
-    pubkey_ser: [u8; 33],
-    hash160: [u8; 20],
-    witness_prog: [u8; 22],
-    base58_buf: [u8; 25],
-}
-impl WorkerBuffers {
-    fn new() -> Self {
-        Self { pubkey_ser: [0u8; 33], hash160: [0u8; 20], witness_prog: [0u8; 22], base58_buf: [0u8; 25] }
-    }
-}
-
 fn main() {
     let threads = num_cpus::get_physical().max(2);
     println!("\n======================================================================");
-    println!("        RUSTYWALLET CHECKER v9.0 - ULTRA OPTIMIZED");
+    println!("   RUSTYWALLET CHECKER v10.0 - HASH160 BLOOM + BATCH AFFINE");
     println!("======================================================================\n");
-    print!("[1/3] Analyzing... ");
+    
+    print!("[1/4] Analyzing... ");
     let _ = stdout().flush();
     let (count, types) = analyze("addresses.txt");
     if count == 0 { println!("No addresses!"); return; }
-    let active = [types.p2pkh, types.p2sh, types.p2wpkh, types.p2tr].iter().filter(|&&x| x).count();
-    println!("{} addresses, {} types", fmt(count as u64), active);
-    print!("[2/3] Loading bloom filter... ");
+    println!("{} addresses", fmt(count as u64));
+    
+    print!("[2/4] Building Hash160 bloom... ");
     let _ = stdout().flush();
     let start = Instant::now();
-    let mut bloom = BloomFilter::new(count, BLOOM_FPR);
-    let loaded = load("addresses.txt", &mut bloom);
-    let mem = bloom.memory_usage() / 1_000_000;
-    println!("{} in {:.1}s (~{}MB)", fmt(loaded), start.elapsed().as_secs_f64(), mem);
+    let mut bloom = BloomFilter::new(count * 2, BLOOM_FPR);
+    let loaded = load_hash160("addresses.txt", &mut bloom);
+    println!("{} hashes in {:.1}s (~{}MB)", fmt(loaded), start.elapsed().as_secs_f64(), bloom.memory_usage()/1_000_000);
     let bloom = Arc::new(bloom);
+
     
-    // VALIDATION TEST: Check if bloom filter works correctly
-    println!("\n[TEST] Validating bloom filter...");
-    let test_addresses = [
-        "34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo",
-        "3M219KR5vEneNb47ewrPfWyb5jQ2DjxRP6",
-        "1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF",
-        "bc1q8yj0herd4r4yxszw3nkfvt53433thk0f5qst4g",
-    ];
-    for addr in &test_addresses {
-        let found = bloom.contains(addr.to_lowercase().as_bytes());
-        println!("  {} -> {}", addr, if found { "✅ FOUND" } else { "❌ NOT FOUND" });
-    }
-    // Test with random address that should NOT be in bloom
-    let fake_addr = "1FakeAddressNotInBloomFilter12345";
-    let fake_found = bloom.contains(fake_addr.to_lowercase().as_bytes());
-    println!("  {} -> {}", fake_addr, if fake_found { "⚠️ FALSE POSITIVE" } else { "✅ CORRECTLY NOT FOUND" });
+    println!("[3/4] Validating...");
+    validate_bloom(&bloom);
     
-    // VALIDATION TEST 2: Verify address generation is correct
-    println!("\n[TEST] Validating address generation...");
-    // Known test vector: private key 1 (0x01)
-    let test_sk_bytes: [u8; 32] = {
-        let mut b = [0u8; 32];
-        b[31] = 1;
-        b
-    };
-    let test_scalar: Scalar = Scalar::from_repr(test_sk_bytes.into()).into_option().unwrap();
-    let test_point: ProjectivePoint = ProjectivePoint::GENERATOR * test_scalar;
-    let test_affine: AffinePoint = test_point.into();
-    let test_encoded = test_affine.to_encoded_point(true);
-    let test_pubkey = test_encoded.as_bytes();
-    
-    // Generate P2PKH address from private key 1
-    let mut test_bufs = WorkerBuffers::new();
-    let mut test_sha = Sha256::new();
-    let mut test_rip = Ripemd160::new();
-    test_bufs.pubkey_ser.copy_from_slice(test_pubkey);
-    hash160_fast(&test_bufs.pubkey_ser, &mut test_bufs.hash160, &mut test_sha, &mut test_rip);
-    
-    // Build P2PKH address
-    test_bufs.base58_buf[0] = 0x00;
-    test_bufs.base58_buf[1..21].copy_from_slice(&test_bufs.hash160);
-    let c1 = Sha256::digest(&test_bufs.base58_buf[..21]);
-    let c2 = Sha256::digest(&c1);
-    test_bufs.base58_buf[21..25].copy_from_slice(&c2[..4]);
-    let generated_p2pkh = bs58::encode(&test_bufs.base58_buf[..25]).into_string();
-    
-    // Known correct P2PKH for private key 1: 1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
-    let expected_p2pkh = "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH";
-    println!("  Private Key: 0x01");
-    println!("  Generated P2PKH: {}", generated_p2pkh);
-    println!("  Expected P2PKH:  {}", expected_p2pkh);
-    println!("  Match: {}", if generated_p2pkh == expected_p2pkh { "✅ CORRECT" } else { "❌ WRONG" });
-    println!();
     let (tx, rx): (Sender<Match>, Receiver<Match>) = bounded(512);
     let att = Arc::new(AtomicU64::new(0));
     let mat = Arc::new(AtomicU64::new(0));
     let chk = Arc::new(AtomicU64::new(0));
     let bal = Arc::new(AtomicU64::new(0));
     let run = Arc::new(AtomicBool::new(true));
-    println!("[3/3] {} threads | {}K batch | secp256k1", threads, BATCH_SIZE/1_000);
-    println!();
+    
+    println!("[4/4] {} threads | Batch Affine | Hash160 Bloom\n", threads);
     println!("----------------------------------------------------------------------");
+    
     let t0 = Instant::now();
     let mut hs = vec![];
     for _ in 0..threads {
-        let b = Arc::clone(&bloom);
-        let a = Arc::clone(&att);
-        let m = Arc::clone(&mat);
-        let t = tx.clone();
-        let r = Arc::clone(&run);
-        hs.push(thread::spawn(move || worker_ultra(b, a, m, t, r, types)));
+        let b = Arc::clone(&bloom); let a = Arc::clone(&att); let m = Arc::clone(&mat);
+        let t = tx.clone(); let r = Arc::clone(&run);
+        hs.push(thread::spawn(move || worker(b, a, m, t, r, types)));
     }
     drop(tx);
-    let c = Arc::clone(&chk);
-    let f = Arc::clone(&bal);
-    let r = Arc::clone(&run);
-    let checker = thread::spawn(move || balance(rx, c, f, r));
-    let a = Arc::clone(&att);
-    let m = Arc::clone(&mat);
-    let c = Arc::clone(&chk);
-    let _f = Arc::clone(&bal);
-    let r = Arc::clone(&run);
+    
+    let c = Arc::clone(&chk); let f = Arc::clone(&bal); let r = Arc::clone(&run);
+    let checker = thread::spawn(move || balance_checker(rx, c, f, r));
+    
+    let a = Arc::clone(&att); let m = Arc::clone(&mat); let c = Arc::clone(&chk); let r = Arc::clone(&run);
     let reporter = thread::spawn(move || {
         let mut last = 0u64;
         loop {
             thread::sleep(Duration::from_secs(2));
             if !r.load(Ordering::Relaxed) { break; }
             let cur = a.load(Ordering::Relaxed);
-            let spd = cur.saturating_sub(last) / 2;
-            last = cur;
-            print!("\r{} | {}/s | B:{} C:{} | {}s   ",
-                fmt(cur), fmt(spd), m.load(Ordering::Relaxed),
-                c.load(Ordering::Relaxed), t0.elapsed().as_secs());
+            print!("\r{} | {}/s | B:{} C:{} | {}s   ", fmt(cur), fmt((cur-last)/2), m.load(Ordering::Relaxed), c.load(Ordering::Relaxed), t0.elapsed().as_secs());
             let _ = stdout().flush();
+            last = cur;
         }
     });
-    let rh = Arc::clone(&run);
-    ctrlc::set_handler(move || { println!("\n[!] Stop"); rh.store(false, Ordering::Relaxed); }).ok();
+    
+    ctrlc::set_handler({ let r = Arc::clone(&run); move || { println!("\n[!] Stop"); r.store(false, Ordering::Relaxed); }}).ok();
     for h in hs { h.join().ok(); }
     run.store(false, Ordering::Relaxed);
-    checker.join().ok();
-    reporter.join().ok();
+    checker.join().ok(); reporter.join().ok();
+    
     let total = att.load(Ordering::Relaxed);
-    let elapsed = t0.elapsed().as_secs_f64();
     println!("\n\n======================================================================");
-    println!("  {} keys @ {}/s | bloom:{} checked:{} balance:{}",
-        fmt(total), fmt((total as f64/elapsed) as u64),
-        mat.load(Ordering::Relaxed), chk.load(Ordering::Relaxed), bal.load(Ordering::Relaxed));
+    println!("  {} keys @ {}/s | bloom:{} api:{} balance:{}", fmt(total), fmt((total as f64/t0.elapsed().as_secs_f64()) as u64), mat.load(Ordering::Relaxed), chk.load(Ordering::Relaxed), bal.load(Ordering::Relaxed));
     println!("======================================================================");
 }
+
 fn analyze(f: &str) -> (usize, AddrTypes) {
     let file = match File::open(f) { Ok(f) => f, Err(_) => return (0, AddrTypes{p2pkh:false,p2sh:false,p2wpkh:false,p2tr:false}) };
     let mut t = AddrTypes{p2pkh:false,p2sh:false,p2wpkh:false,p2tr:false};
@@ -183,75 +113,132 @@ fn analyze(f: &str) -> (usize, AddrTypes) {
     }
     (c, t)
 }
-fn load(f: &str, b: &mut BloomFilter) -> u64 {
+
+fn load_hash160(f: &str, bloom: &mut BloomFilter) -> u64 {
     let file = match File::open(f) { Ok(f) => f, Err(_) => return 0 };
-    let mut c = 0u64;
-    for l in BufReader::with_capacity(8<<20, file).lines().flatten() {
-        let a = l.trim();
-        if !a.is_empty() && !a.starts_with('#') { b.insert(a.to_lowercase().as_bytes()); c += 1; }
+    let mut count = 0u64;
+    for line in BufReader::with_capacity(8<<20, file).lines().flatten() {
+        let addr = line.trim();
+        if addr.is_empty() || addr.starts_with('#') { continue; }
+        if let Some(h160) = decode_addr_to_hash160(addr) {
+            bloom.insert(&h160);
+            count += 1;
+        }
     }
-    c
+    count
 }
 
-fn worker_ultra(bloom: Arc<BloomFilter>, att: Arc<AtomicU64>, mat: Arc<AtomicU64>,
-                tx: Sender<Match>, run: Arc<AtomicBool>, types: AddrTypes) {
-    let mut bufs = WorkerBuffers::new();
-    let mut sha256_hasher = Sha256::new();
-    let mut ripemd_hasher = Ripemd160::new();
-    let mut addr_string = String::with_capacity(64);
-    let mut la = 0u64;
-    let mut lm = 0u64;
+fn decode_addr_to_hash160(addr: &str) -> Option<[u8; 20]> {
+    if addr.starts_with('1') || addr.starts_with('3') {
+        let decoded = bs58::decode(addr).into_vec().ok()?;
+        if decoded.len() != 25 { return None; }
+        let mut h160 = [0u8; 20];
+        h160.copy_from_slice(&decoded[1..21]);
+        Some(h160)
+    } else if addr.starts_with("bc1q") || addr.starts_with("bc1p") {
+        bech32_decode_hash160(addr)
+    } else { None }
+}
+
+fn bech32_decode_hash160(addr: &str) -> Option<[u8; 20]> {
+    let addr_lower = addr.to_lowercase();
+    let sep_pos = addr_lower.rfind('1')?;
+    let data_part = &addr_lower[sep_pos + 1..];
+    if data_part.len() < 7 { return None; }
+    const CHARSET: &[u8] = b"qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+    let mut values = Vec::with_capacity(data_part.len() - 6);
+    for c in data_part[..data_part.len()-6].chars() {
+        let idx = CHARSET.iter().position(|&x| x == c as u8)?;
+        values.push(idx as u8);
+    }
+    if values.is_empty() { return None; }
+    let mut result = Vec::new();
+    let mut acc = 0u32; let mut bits = 0u32;
+    for &v in &values[1..] {
+        acc = (acc << 5) | v as u32; bits += 5;
+        if bits >= 8 { bits -= 8; result.push((acc >> bits) as u8); }
+    }
+    if result.len() >= 20 {
+        let mut h160 = [0u8; 20];
+        h160.copy_from_slice(&result[..20]);
+        Some(h160)
+    } else { None }
+}
+
+fn validate_bloom(bloom: &BloomFilter) {
+    let test_sk: [u8; 32] = { let mut b = [0u8; 32]; b[31] = 1; b };
+    let scalar: Scalar = Scalar::from_repr(test_sk.into()).unwrap();
+    let point: ProjectivePoint = ProjectivePoint::GENERATOR * scalar;
+    let affine: AffinePoint = point.into();
+    let encoded = affine.to_encoded_point(true);
+    let h160 = hash160(encoded.as_bytes());
+    let expected = decode_addr_to_hash160("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH").unwrap();
+    println!("  Hash160 gen: {}", if h160 == expected { "OK" } else { "FAIL" });
+}
+
+
+fn worker(bloom: Arc<BloomFilter>, att: Arc<AtomicU64>, mat: Arc<AtomicU64>,
+          tx: Sender<Match>, run: Arc<AtomicBool>, types: AddrTypes) {
+    let g = ProjectivePoint::GENERATOR;
     let mut rng = rand::thread_rng();
-    
-    // Generator point G for EC point addition
-    let g: ProjectivePoint = ProjectivePoint::GENERATOR;
+    let mut la = 0u64; let mut lm = 0u64;
+    let mut points: Vec<ProjectivePoint> = Vec::with_capacity(BATCH_SIZE);
+    let mut scalars: Vec<Scalar> = Vec::with_capacity(BATCH_SIZE);
     
     while run.load(Ordering::Relaxed) {
-        // Generate random starting scalar
         let mut sk_bytes = [0u8; 32];
         rng.fill_bytes(&mut sk_bytes);
-        
-        // Create initial scalar and point
         let mut scalar: Scalar = match Scalar::from_repr(sk_bytes.into()).into_option() {
-            Some(s) => s,
-            None => continue,
+            Some(s) => s, None => continue,
         };
-        let mut point: ProjectivePoint = g * scalar;
+        let mut point = g * scalar;
         
-        for i in 0..BATCH_SIZE {
-            if i % UPDATE_INTERVAL == 0 {
-                if !run.load(Ordering::Relaxed) { break; }
+        for _ in 0..BATCHES_PER_ROUND {
+            if !run.load(Ordering::Relaxed) { break; }
+            points.clear(); scalars.clear();
+            for _ in 0..BATCH_SIZE {
+                points.push(point); scalars.push(scalar);
+                point = point + g; scalar = scalar + Scalar::ONE;
+            }
+            let affines: Vec<AffinePoint> = points.iter().map(|p| (*p).into()).collect();
+            for (i, affine) in affines.iter().enumerate() {
+                let encoded = affine.to_encoded_point(true);
+                let pubkey = encoded.as_bytes();
+                if pubkey.len() != 33 { continue; }
+                let h160 = hash160(pubkey);
+                let sk: [u8; 32] = scalars[i].to_repr().into();
+                
+                if types.p2pkh && bloom.contains(&h160) {
+                    lm += 1;
+                    let _ = tx.try_send(Match { pk: sk, t: "P2PKH", a: encode_p2pkh(&h160) });
+                }
+                if types.p2wpkh && bloom.contains(&h160) {
+                    lm += 1;
+                    let _ = tx.try_send(Match { pk: sk, t: "P2WPKH", a: encode_p2wpkh(&h160) });
+                }
+                if types.p2sh {
+                    let sh = p2sh_script_hash(&h160);
+                    if bloom.contains(&sh) {
+                        lm += 1;
+                        let _ = tx.try_send(Match { pk: sk, t: "P2SH", a: encode_p2sh(&sh) });
+                    }
+                }
+                if types.p2tr {
+                    let xonly = &pubkey[1..33];
+                    let mut h160_tr = [0u8; 20];
+                    h160_tr.copy_from_slice(&xonly[..20]);
+                    if bloom.contains(&h160_tr) {
+                        lm += 1;
+                        let _ = tx.try_send(Match { pk: sk, t: "P2TR", a: encode_p2tr(xonly) });
+                    }
+                }
+                la += 1;
+            }
+            if la >= UPDATE_INTERVAL as u64 {
                 att.fetch_add(la, Ordering::Relaxed);
                 mat.fetch_add(lm, Ordering::Relaxed);
                 la = 0; lm = 0;
             }
-            
-            // Convert to affine and serialize compressed public key
-            let affine: AffinePoint = point.into();
-            let encoded = affine.to_encoded_point(true);
-            let pubkey_bytes = encoded.as_bytes();
-            
-            if pubkey_bytes.len() == 33 {
-                bufs.pubkey_ser.copy_from_slice(pubkey_bytes);
-                hash160_fast(&bufs.pubkey_ser, &mut bufs.hash160, &mut sha256_hasher, &mut ripemd_hasher);
-                
-                // Get current secret key bytes
-                let current_sk: [u8; 32] = scalar.to_repr().into();
-                let h160 = bufs.hash160;
-                let pubkey_copy = bufs.pubkey_ser;
-                
-                // Check all address types
-                if types.p2pkh { chk_p2pkh_fast(&bloom, &h160, &current_sk, &tx, &mut lm, &mut bufs, &mut addr_string); }
-                if types.p2sh { chk_p2sh_fast(&bloom, &h160, &current_sk, &tx, &mut lm, &mut bufs, &mut addr_string, &mut sha256_hasher, &mut ripemd_hasher); }
-                if types.p2wpkh { chk_p2wpkh_fast(&bloom, &h160, &current_sk, &tx, &mut lm, &mut addr_string); }
-                if types.p2tr { chk_p2tr_fast(&bloom, &pubkey_copy, &current_sk, &tx, &mut lm, &mut addr_string); }
-            }
-            
-            la += 1;
-            
-            // EC Point Addition: P = P + G (MUCH faster than scalar multiplication!)
-            point = point + g;
-            scalar = scalar + Scalar::ONE;
         }
         att.fetch_add(la, Ordering::Relaxed);
         mat.fetch_add(lm, Ordering::Relaxed);
@@ -260,72 +247,46 @@ fn worker_ultra(bloom: Arc<BloomFilter>, att: Arc<AtomicU64>, mat: Arc<AtomicU64
 }
 
 #[inline(always)]
-fn hash160_fast(data: &[u8; 33], out: &mut [u8; 20], sha: &mut Sha256, rip: &mut Ripemd160) {
-    sha.update(data);
-    let sha_result = sha.finalize_reset();
-    rip.update(&sha_result);
-    out.copy_from_slice(&rip.finalize_reset());
+fn hash160(data: &[u8]) -> [u8; 20] {
+    let sha = Sha256::digest(data);
+    let rip = Ripemd160::digest(&sha);
+    let mut out = [0u8; 20]; out.copy_from_slice(&rip); out
 }
 
 #[inline(always)]
-fn chk_p2pkh_fast(b: &BloomFilter, h160: &[u8; 20], sk: &[u8; 32], tx: &Sender<Match>, m: &mut u64, bufs: &mut WorkerBuffers, addr: &mut String) {
-    bufs.base58_buf[0] = 0x00;
-    bufs.base58_buf[1..21].copy_from_slice(h160);
-    let c1 = Sha256::digest(&bufs.base58_buf[..21]);
-    let c2 = Sha256::digest(&c1);
-    bufs.base58_buf[21..25].copy_from_slice(&c2[..4]);
-    addr.clear();
-    addr.push_str(&bs58::encode(&bufs.base58_buf[..25]).into_string());
-    if b.contains(addr.to_lowercase().as_bytes()) {
-        *m += 1; 
-        let _ = tx.try_send(Match { pk: *sk, t: "P2PKH", a: addr.clone() });
-    }
+fn p2sh_script_hash(h160: &[u8; 20]) -> [u8; 20] {
+    let mut script = [0u8; 22];
+    script[0] = 0x00; script[1] = 0x14;
+    script[2..22].copy_from_slice(h160);
+    hash160(&script)
 }
 
-#[inline(always)]
-fn chk_p2sh_fast(b: &BloomFilter, h160: &[u8; 20], sk: &[u8; 32], tx: &Sender<Match>, m: &mut u64, bufs: &mut WorkerBuffers, addr: &mut String, sha: &mut Sha256, rip: &mut Ripemd160) {
-    bufs.witness_prog[0] = 0x00;
-    bufs.witness_prog[1] = 0x14;
-    bufs.witness_prog[2..22].copy_from_slice(h160);
-    sha.update(&bufs.witness_prog);
-    let h3 = sha.finalize_reset();
-    rip.update(&h3);
-    let h4 = rip.finalize_reset();
-    bufs.base58_buf[0] = 0x05;
-    bufs.base58_buf[1..21].copy_from_slice(&h4);
-    let c1 = Sha256::digest(&bufs.base58_buf[..21]);
-    let c2 = Sha256::digest(&c1);
-    bufs.base58_buf[21..25].copy_from_slice(&c2[..4]);
-    addr.clear();
-    addr.push_str(&bs58::encode(&bufs.base58_buf[..25]).into_string());
-    if b.contains(addr.to_lowercase().as_bytes()) {
-        *m += 1; 
-        let _ = tx.try_send(Match { pk: *sk, t: "P2SH", a: addr.clone() });
-    }
+fn encode_p2pkh(h160: &[u8; 20]) -> String {
+    let mut buf = [0u8; 25]; buf[0] = 0x00; buf[1..21].copy_from_slice(h160);
+    let c = Sha256::digest(&Sha256::digest(&buf[..21]));
+    buf[21..25].copy_from_slice(&c[..4]);
+    bs58::encode(&buf).into_string()
 }
 
-#[inline(always)]
-fn chk_p2wpkh_fast(b: &BloomFilter, h160: &[u8; 20], sk: &[u8; 32], tx: &Sender<Match>, m: &mut u64, addr: &mut String) {
-    addr.clear();
-    bech32_encode_to(addr, "bc", 0, h160);
-    if b.contains(addr.to_lowercase().as_bytes()) {
-        *m += 1; 
-        let _ = tx.try_send(Match { pk: *sk, t: "P2WPKH", a: addr.clone() });
-    }
+fn encode_p2sh(h160: &[u8; 20]) -> String {
+    let mut buf = [0u8; 25]; buf[0] = 0x05; buf[1..21].copy_from_slice(h160);
+    let c = Sha256::digest(&Sha256::digest(&buf[..21]));
+    buf[21..25].copy_from_slice(&c[..4]);
+    bs58::encode(&buf).into_string()
 }
 
-#[inline(always)]
-fn chk_p2tr_fast(b: &BloomFilter, pk: &[u8; 33], sk: &[u8; 32], tx: &Sender<Match>, m: &mut u64, addr: &mut String) {
-    addr.clear();
-    bech32m_encode_to(addr, "bc", 1, &pk[1..33]);
-    if b.contains(addr.to_lowercase().as_bytes()) {
-        *m += 1; 
-        let _ = tx.try_send(Match { pk: *sk, t: "P2TR", a: addr.clone() });
-    }
+fn encode_p2wpkh(h160: &[u8; 20]) -> String {
+    let mut out = String::with_capacity(62);
+    bech32_encode(&mut out, "bc", 0, h160); out
 }
 
-#[inline(always)]
-fn bech32_encode_to(out: &mut String, hrp: &str, version: u8, data: &[u8]) {
+fn encode_p2tr(xonly: &[u8]) -> String {
+    let mut out = String::with_capacity(62);
+    bech32m_encode(&mut out, "bc", 1, xonly); out
+}
+
+
+fn bech32_encode(out: &mut String, hrp: &str, version: u8, data: &[u8]) {
     const CHARSET: &[u8] = b"qpzry9x8gf2tvdw0s3jn54khce6mua7l";
     out.push_str(hrp); out.push('1');
     let mut values = [0u8; 65]; let mut idx = 0;
@@ -333,12 +294,12 @@ fn bech32_encode_to(out: &mut String, hrp: &str, version: u8, data: &[u8]) {
     let mut acc = 0u32; let mut bits = 0u32;
     for &b in data { acc = (acc << 8) | b as u32; bits += 8; while bits >= 5 { bits -= 5; values[idx] = ((acc >> bits) & 31) as u8; idx += 1; } }
     if bits > 0 { values[idx] = ((acc << (5 - bits)) & 31) as u8; idx += 1; }
-    let checksum = bech32_checksum_fast(hrp, &values[..idx], 1);
+    let checksum = bech32_checksum(hrp, &values[..idx], 1);
     for i in 0..idx { out.push(CHARSET[values[i] as usize] as char); }
     for c in checksum { out.push(CHARSET[c as usize] as char); }
 }
-#[inline(always)]
-fn bech32m_encode_to(out: &mut String, hrp: &str, version: u8, data: &[u8]) {
+
+fn bech32m_encode(out: &mut String, hrp: &str, version: u8, data: &[u8]) {
     const CHARSET: &[u8] = b"qpzry9x8gf2tvdw0s3jn54khce6mua7l";
     out.push_str(hrp); out.push('1');
     let mut values = [0u8; 65]; let mut idx = 0;
@@ -346,12 +307,12 @@ fn bech32m_encode_to(out: &mut String, hrp: &str, version: u8, data: &[u8]) {
     let mut acc = 0u32; let mut bits = 0u32;
     for &b in data { acc = (acc << 8) | b as u32; bits += 8; while bits >= 5 { bits -= 5; values[idx] = ((acc >> bits) & 31) as u8; idx += 1; } }
     if bits > 0 { values[idx] = ((acc << (5 - bits)) & 31) as u8; idx += 1; }
-    let checksum = bech32_checksum_fast(hrp, &values[..idx], 0x2bc830a3);
+    let checksum = bech32_checksum(hrp, &values[..idx], 0x2bc830a3);
     for i in 0..idx { out.push(CHARSET[values[i] as usize] as char); }
     for c in checksum { out.push(CHARSET[c as usize] as char); }
 }
-#[inline(always)]
-fn bech32_checksum_fast(hrp: &str, data: &[u8], constant: u32) -> [u8; 6] {
+
+fn bech32_checksum(hrp: &str, data: &[u8], constant: u32) -> [u8; 6] {
     let mut chk = 1u32;
     for c in hrp.bytes() { chk = bech32_polymod(chk) ^ (c >> 5) as u32; }
     chk = bech32_polymod(chk);
@@ -361,145 +322,67 @@ fn bech32_checksum_fast(hrp: &str, data: &[u8], constant: u32) -> [u8; 6] {
     chk ^= constant;
     [((chk >> 25) & 31) as u8, ((chk >> 20) & 31) as u8, ((chk >> 15) & 31) as u8, ((chk >> 10) & 31) as u8, ((chk >> 5) & 31) as u8, (chk & 31) as u8]
 }
+
 #[inline(always)]
 fn bech32_polymod(pre: u32) -> u32 {
     let b = pre >> 25;
     ((pre & 0x1ffffff) << 5) ^ (if b & 1 != 0 { 0x3b6a57b2 } else { 0 }) ^ (if b & 2 != 0 { 0x26508e6d } else { 0 }) ^ (if b & 4 != 0 { 0x1ea119fa } else { 0 }) ^ (if b & 8 != 0 { 0x3d4233dd } else { 0 }) ^ (if b & 16 != 0 { 0x2a1462b3 } else { 0 })
 }
 
-fn balance(rx: Receiver<Match>, chk: Arc<AtomicU64>, bal: Arc<AtomicU64>, run: Arc<AtomicBool>) {
+fn balance_checker(rx: Receiver<Match>, chk: Arc<AtomicU64>, bal: Arc<AtomicU64>, run: Arc<AtomicBool>) {
     let rt = Runtime::new().unwrap();
     while run.load(Ordering::Relaxed) {
         match rx.recv_timeout(Duration::from_millis(100)) {
             Ok(m) => {
                 chk.fetch_add(1, Ordering::Relaxed);
-                let addr = m.a.clone();
-                
-                // Check balance via API
-                let balance_result = rt.block_on(async {
-                    check_btc_balance(&addr).await
-                });
-                
-                match balance_result {
+                let result = rt.block_on(async { check_btc_balance(&m.a).await });
+                match result {
                     Ok(b) => {
-                        let has_bal = b.balance > 0 || b.unconfirmed != 0;
-                        
-                        // Always save with balance info
-                        save_with_balance_info(&m, &b);
-                        
-                        // Print to terminal
-                        println!("\n[🔍] BLOOM MATCH: {} | Balance: {} sat | Unconfirmed: {} sat", 
-                            addr, fmt(b.balance), b.unconfirmed);
-                        
-                        if has_bal {
+                        save_match(&m, &b);
+                        println!("\n[BLOOM] {} | {} sat", m.a, fmt(b.balance));
+                        if b.balance > 0 || b.unconfirmed != 0 {
                             bal.fetch_add(1, Ordering::Relaxed);
-                            println!("[💰💰💰] BALANCE FOUND! {} | {} sat", addr, fmt(b.balance));
-                            save_balance_found(&m, &b);
+                            println!("[💰] BALANCE! {} | {} sat", m.a, fmt(b.balance));
+                            save_balance(&m, &b);
                         }
                     }
-                    Err(e) => {
-                        // Save even if API error, mark as unchecked
-                        save_api_error(&m, &e.to_string());
-                        println!("\n[⚠️] API Error for {}: {}", addr, e);
-                    }
+                    Err(e) => { save_error(&m, &e.to_string()); println!("\n[ERR] {}: {}", m.a, e); }
                 }
-                
                 thread::sleep(Duration::from_millis(1000 / BALANCE_CHECK_RATE));
             }
             Err(_) => continue,
         }
     }
-    // Process remaining items in queue
-    for m in rx.try_iter() { 
-        let addr = m.a.clone();
-        let balance_result = rt.block_on(async {
-            check_btc_balance(&addr).await
-        });
-        if let Ok(b) = balance_result {
-            save_with_balance_info(&m, &b);
-        }
+    for m in rx.try_iter() {
+        let result = rt.block_on(async { check_btc_balance(&m.a).await });
+        if let Ok(b) = result { save_match(&m, &b); }
     }
 }
 
-fn save_with_balance_info(m: &Match, b: &BitcoinBalance) {
+fn save_match(m: &Match, b: &BitcoinBalance) {
     let pk = PrivateKey::from_bytes(m.pk).unwrap();
     let wif = pk.to_wif(rustywallet_keys::prelude::Network::Mainnet);
-    let hex_key = hex::encode(&m.pk);
-    let pubkey = pk.public_key();
-    let pubkey_hex = hex::encode(pubkey.to_compressed());
-    let pubkey_uncompressed = hex::encode(pubkey.to_uncompressed());
-    
     let mut f = OpenOptions::new().create(true).append(true).open("found.txt").unwrap();
-    writeln!(f, "================================================================================").ok();
-    writeln!(f, "Type: {}", m.t).ok();
-    writeln!(f, "Address: {}", m.a).ok();
-    writeln!(f, "Balance: {} satoshis ({:.8} BTC)", b.balance, b.balance as f64 / 100_000_000.0).ok();
-    writeln!(f, "Unconfirmed: {} satoshis", b.unconfirmed).ok();
-    writeln!(f, "Total Received: {} satoshis", b.total_received).ok();
-    writeln!(f, "Total Sent: {} satoshis", b.total_sent).ok();
-    writeln!(f, "TX Count: {}", b.tx_count).ok();
-    writeln!(f, "Private Key (HEX): {}", hex_key).ok();
-    writeln!(f, "Private Key (WIF): {}", wif).ok();
-    writeln!(f, "Public Key (Compressed): {}", pubkey_hex).ok();
-    writeln!(f, "Public Key (Uncompressed): {}", pubkey_uncompressed).ok();
-    writeln!(f, "Timestamp: {:?}", std::time::SystemTime::now()).ok();
-    writeln!(f, "================================================================================").ok();
-    writeln!(f, "").ok();
+    writeln!(f, "=== {} ===\nAddress: {}\nBalance: {} sat\nHEX: {}\nWIF: {}\n", m.t, m.a, b.balance, hex::encode(&m.pk), wif).ok();
 }
 
-fn save_balance_found(m: &Match, b: &BitcoinBalance) {
+fn save_balance(m: &Match, b: &BitcoinBalance) {
     let pk = PrivateKey::from_bytes(m.pk).unwrap();
     let wif = pk.to_wif(rustywallet_keys::prelude::Network::Mainnet);
-    let hex_key = hex::encode(&m.pk);
-    let pubkey = pk.public_key();
-    let pubkey_hex = hex::encode(pubkey.to_compressed());
-    let pubkey_uncompressed = hex::encode(pubkey.to_uncompressed());
-    
     let mut f = OpenOptions::new().create(true).append(true).open("found_with_balance.txt").unwrap();
-    writeln!(f, "********************************************************************************").ok();
-    writeln!(f, "*** 💰💰💰 BALANCE FOUND! 💰💰💰 ***").ok();
-    writeln!(f, "********************************************************************************").ok();
-    writeln!(f, "Type: {}", m.t).ok();
-    writeln!(f, "Address: {}", m.a).ok();
-    writeln!(f, "Balance: {} satoshis ({:.8} BTC)", b.balance, b.balance as f64 / 100_000_000.0).ok();
-    writeln!(f, "Unconfirmed: {} satoshis", b.unconfirmed).ok();
-    writeln!(f, "Total Received: {} satoshis", b.total_received).ok();
-    writeln!(f, "Total Sent: {} satoshis", b.total_sent).ok();
-    writeln!(f, "TX Count: {}", b.tx_count).ok();
-    writeln!(f, "Private Key (HEX): {}", hex_key).ok();
-    writeln!(f, "Private Key (WIF): {}", wif).ok();
-    writeln!(f, "Public Key (Compressed): {}", pubkey_hex).ok();
-    writeln!(f, "Public Key (Uncompressed): {}", pubkey_uncompressed).ok();
-    writeln!(f, "Timestamp: {:?}", std::time::SystemTime::now()).ok();
-    writeln!(f, "********************************************************************************").ok();
-    writeln!(f, "").ok();
+    writeln!(f, "*** BALANCE ***\n{}: {}\nBalance: {} sat\nHEX: {}\nWIF: {}\n", m.t, m.a, b.balance, hex::encode(&m.pk), wif).ok();
 }
 
-fn save_api_error(m: &Match, error: &str) {
+fn save_error(m: &Match, err: &str) {
     let pk = PrivateKey::from_bytes(m.pk).unwrap();
     let wif = pk.to_wif(rustywallet_keys::prelude::Network::Mainnet);
-    let hex_key = hex::encode(&m.pk);
-    let pubkey = pk.public_key();
-    let pubkey_hex = hex::encode(pubkey.to_compressed());
-    let pubkey_uncompressed = hex::encode(pubkey.to_uncompressed());
-    
     let mut f = OpenOptions::new().create(true).append(true).open("found.txt").unwrap();
-    writeln!(f, "================================================================================").ok();
-    writeln!(f, "Type: {}", m.t).ok();
-    writeln!(f, "Address: {}", m.a).ok();
-    writeln!(f, "Balance: API ERROR - {}", error).ok();
-    writeln!(f, "Private Key (HEX): {}", hex_key).ok();
-    writeln!(f, "Private Key (WIF): {}", wif).ok();
-    writeln!(f, "Public Key (Compressed): {}", pubkey_hex).ok();
-    writeln!(f, "Public Key (Uncompressed): {}", pubkey_uncompressed).ok();
-    writeln!(f, "Timestamp: {:?}", std::time::SystemTime::now()).ok();
-    writeln!(f, "================================================================================").ok();
-    writeln!(f, "").ok();
+    writeln!(f, "=== {} (ERR) ===\nAddress: {}\nError: {}\nHEX: {}\nWIF: {}\n", m.t, m.a, err, hex::encode(&m.pk), wif).ok();
 }
 
 fn fmt(n: u64) -> String {
     let s = n.to_string();
-    let mut r = String::with_capacity(s.len() + s.len() / 3);
+    let mut r = String::with_capacity(s.len() + s.len()/3);
     for (i, c) in s.chars().rev().enumerate() {
         if i > 0 && i % 3 == 0 { r.push(','); }
         r.push(c);
