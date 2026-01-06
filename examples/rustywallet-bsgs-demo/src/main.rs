@@ -55,6 +55,12 @@ fn main() {
         return;
     }
     
+    // Check for --genkey flag (generate pubkey from private key)
+    if args.len() >= 3 && args[1] == "--genkey" {
+        generate_pubkey(&args[2]);
+        return;
+    }
+    
     // Check for custom public key input
     
     let (puzzle_num, target_pubkey_hex, target_addr): (u32, String, String) = if args.len() >= 3 {
@@ -435,4 +441,49 @@ fn run_test() {
         println!("  ❌ Some tests failed. Check implementation.");
     }
     println!("======================================================================");
+}
+
+
+/// Generate public key from private key hex
+fn generate_pubkey(privkey_hex: &str) {
+    println!("[GENKEY] Generating public key from private key...\n");
+    
+    let privkey_hex = privkey_hex.trim_start_matches("0x");
+    
+    // Pad to 64 chars
+    let padded = format!("{:0>64}", privkey_hex);
+    
+    let bytes = match hex::decode(&padded) {
+        Ok(b) => b,
+        Err(_) => {
+            println!("[ERROR] Invalid hex");
+            return;
+        }
+    };
+    
+    if bytes.len() != 32 {
+        println!("[ERROR] Private key must be 32 bytes");
+        return;
+    }
+    
+    let mut arr = [0u8; 32];
+    arr.copy_from_slice(&bytes);
+    
+    let scalar = match Scalar::from_repr(arr.into()).into_option() {
+        Some(s) => s,
+        None => {
+            println!("[ERROR] Invalid scalar");
+            return;
+        }
+    };
+    
+    let g = ProjectivePoint::GENERATOR;
+    let pubkey_point = g * scalar;
+    let pubkey_bytes = pubkey_point.to_bytes();
+    
+    println!("Private Key (HEX): {}", privkey_hex);
+    println!("Public Key (Compressed): {}", hex::encode(&pubkey_bytes));
+    println!();
+    println!("Use this public key with BSGS:");
+    println!("  bsgs-demo <bit> {} [address]", hex::encode(&pubkey_bytes));
 }
