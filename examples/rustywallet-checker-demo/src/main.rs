@@ -226,26 +226,108 @@ fn bech32_decode_hash160(addr: &str) -> Option<[u8; 20]> {
 }
 
 fn validate_blooms(bloom_h160: &BloomFilter, bloom_addr: &BloomFilter) {
-    // Test known address
-    let test_addr = "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH";
-    let test_h160 = decode_addr_to_hash160(test_addr).unwrap();
+    println!("\n  === COMPREHENSIVE VALIDATION ===\n");
     
-    // Generate hash160 from private key 1
-    let test_sk: [u8; 32] = { let mut b = [0u8; 32]; b[31] = 1; b };
-    let scalar: Scalar = Scalar::from_repr(test_sk.into()).unwrap();
-    let point: ProjectivePoint = ProjectivePoint::GENERATOR * scalar;
-    let affine: AffinePoint = point.into();
-    let encoded = affine.to_encoded_point(true);
-    let gen_h160 = hash160(encoded.as_bytes());
+    // 1. Test known private key -> address generation
+    println!("  [1] Private Key -> Address Generation:");
+    let test_vectors: &[(&str, &str, &str)] = &[
+        // (private_key_hex, expected_p2pkh, expected_p2wpkh)
+        ("0000000000000000000000000000000000000000000000000000000000000001", 
+         "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH",
+         "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"),
+    ];
     
-    println!("  Hash160 match: {}", if gen_h160 == test_h160 { "OK" } else { "FAIL" });
-    
-    // Test bloom filters with addresses from file
-    let test_addrs = ["34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo", "1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF"];
-    for addr in &test_addrs {
-        let in_addr_bloom = bloom_addr.contains(addr.as_bytes());
-        println!("  {} in addr bloom: {}", addr, if in_addr_bloom { "YES" } else { "NO" });
+    for (sk_hex, expected_p2pkh, _expected_p2wpkh) in test_vectors {
+        let sk_bytes = hex::decode(sk_hex).unwrap();
+        let mut sk_arr = [0u8; 32];
+        sk_arr.copy_from_slice(&sk_bytes);
+        
+        let scalar: Scalar = Scalar::from_repr(sk_arr.into()).unwrap();
+        let point: ProjectivePoint = ProjectivePoint::GENERATOR * scalar;
+        let affine: AffinePoint = point.into();
+        let encoded = affine.to_encoded_point(true);
+        let pubkey = encoded.as_bytes();
+        
+        let h160 = hash160(pubkey);
+        let gen_p2pkh = encode_p2pkh(&h160);
+        let gen_p2wpkh = encode_p2wpkh(&h160);
+        
+        println!("      SK: {}...{}", &sk_hex[..8], &sk_hex[56..]);
+        println!("      Generated P2PKH:  {}", gen_p2pkh);
+        println!("      Expected P2PKH:   {}", expected_p2pkh);
+        println!("      P2PKH Match: {}", if gen_p2pkh == *expected_p2pkh { "✅ OK" } else { "❌ FAIL" });
+        println!("      Generated P2WPKH: {}", gen_p2wpkh);
     }
+    
+    // 2. Test address decoding
+    println!("\n  [2] Address Decoding (Hash160 extraction):");
+    let decode_tests = [
+        ("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH", "P2PKH"),
+        ("34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo", "P2SH"),
+        ("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "P2WPKH"),
+    ];
+    
+    for (addr, addr_type) in &decode_tests {
+        match decode_addr_to_hash160(addr) {
+            Some(h160) => println!("      {} ({}): {} -> h160={}", addr_type, &addr[..15], addr, hex::encode(&h160[..8])),
+            None => println!("      {} ({}): ❌ DECODE FAILED", addr_type, addr),
+        }
+    }
+    
+    // 3. Test bloom filter with addresses from file
+    println!("\n  [3] Bloom Filter Verification:");
+    let file_addrs = [
+        "34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo",
+        "3M219KR5vEneNb47ewrPfWyb5jQ2DjxRP6", 
+        "1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF",
+    ];
+    
+    for addr in &file_addrs {
+        let in_addr = bloom_addr.contains(addr.as_bytes());
+        let h160 = decode_addr_to_hash160(addr);
+        let in_h160 = h160.map(|h| bloom_h160.contains(&h)).unwrap_or(false);
+        
+        println!("      {}", addr);
+        println!("        Addr bloom: {} | H160 bloom: {}", 
+            if in_addr { "✅" } else { "❌" },
+            if in_h160 { "✅" } else { "❌" });
+    }
+    
+    // 4. Test with random address NOT in file (should be false)
+    println!("\n  [4] False Positive Test (random address):");
+    let fake_addr = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"; // Satoshi's address
+    let in_addr = bloom_addr.contains(fake_addr.as_bytes());
+    let h160 = decode_addr_to_hash160(fake_addr);
+    let in_h160 = h160.map(|h| bloom_h160.contains(&h)).unwrap_or(false);
+    println!("      {} (Satoshi)", fake_addr);
+    println!("        Addr bloom: {} (expected: NO)", if in_addr { "YES ⚠️" } else { "NO ✅" });
+    println!("        H160 bloom: {} (may have false positive)", if in_h160 { "YES" } else { "NO" });
+    
+    // 5. End-to-end test: generate key, check if in bloom
+    println!("\n  [5] End-to-End Test (generate -> check):");
+    let mut rng = rand::thread_rng();
+    let mut test_sk = [0u8; 32];
+    rng.fill_bytes(&mut test_sk);
+    
+    if let Some(scalar) = Scalar::from_repr(test_sk.into()).into_option() {
+        let point: ProjectivePoint = ProjectivePoint::GENERATOR * scalar;
+        let affine: AffinePoint = point.into();
+        let encoded = affine.to_encoded_point(true);
+        let pubkey = encoded.as_bytes();
+        let h160 = hash160(pubkey);
+        let addr = encode_p2pkh(&h160);
+        
+        let in_h160 = bloom_h160.contains(&h160);
+        let in_addr = bloom_addr.contains(addr.as_bytes());
+        
+        println!("      Random SK: {}...", hex::encode(&test_sk[..8]));
+        println!("      Generated: {}", addr);
+        println!("      H160 bloom: {} | Addr bloom: {}", 
+            if in_h160 { "YES (false positive)" } else { "NO ✅" },
+            if in_addr { "YES (false positive)" } else { "NO ✅" });
+    }
+    
+    println!("\n  === VALIDATION COMPLETE ===\n");
 }
 
 
