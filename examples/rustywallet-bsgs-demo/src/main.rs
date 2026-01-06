@@ -101,6 +101,14 @@ fn main() {
         return;
     }
 
+    // Validate puzzle range (u128 max is 2^128)
+    if puzzle_num > 128 {
+        println!("[ERROR] Puzzle #{} is too large for this implementation.", puzzle_num);
+        println!("Maximum supported: #128 (u128 limit)");
+        println!("\nFor puzzles > 128 bit, you need big integer support.");
+        return;
+    }
+
     // Parse public key
     let pubkey_bytes = match hex::decode(&target_pubkey_hex) {
         Ok(b) => b,
@@ -118,15 +126,25 @@ fn main() {
         }
     };
 
-    // Calculate range
-    let range_start: u128 = 1u128 << (puzzle_num - 1);
-    let range_end: u128 = (1u128 << puzzle_num) - 1;
-    let range_size = range_end - range_start;
+    // Calculate range (safe for puzzle_num <= 128)
+    let range_start: u128 = if puzzle_num <= 1 { 1 } else { 1u128 << (puzzle_num - 1) };
+    let range_end: u128 = if puzzle_num >= 128 { 
+        u128::MAX 
+    } else { 
+        (1u128 << puzzle_num) - 1 
+    };
+    let range_size = range_end.saturating_sub(range_start);
 
     // Calculate optimal m (baby steps)
-    let sqrt_range = ((range_size as f64).sqrt() as u64).min(MAX_TABLE_SIZE);
-    let m = sqrt_range;
-    let num_giant_steps = (range_size / m as u128) + 1;
+    // For very large ranges, cap at MAX_TABLE_SIZE
+    let sqrt_range = if range_size > (1u128 << 64) {
+        // For ranges > 2^64, use max table size
+        MAX_TABLE_SIZE
+    } else {
+        ((range_size as f64).sqrt() as u64).max(1).min(MAX_TABLE_SIZE)
+    };
+    let m = sqrt_range.max(1);  // Ensure at least 1
+    let num_giant_steps = if m > 0 { (range_size / m as u128) + 1 } else { range_size };
 
     println!("[PUZZLE] #{}", puzzle_num);
     println!("[TARGET] {}", target_addr);
