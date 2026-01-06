@@ -1982,6 +1982,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-bsgs-demo"
+version = "0.1.0"
+dependencies = [
+ "bs58",
+ "ctrlc",
+ "hex",
+ "k256",
+ "num_cpus",
+ "ripemd",
+ "sha2",
+]
+
+[[package]]
 name = "rustywallet-checker"
 version = "0.2.0"
 dependencies = [
