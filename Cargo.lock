@@ -1989,6 +1989,8 @@ dependencies = [
  "ctrlc",
  "hex",
  "k256",
+ "num-bigint",
+ "num-traits",
  "num_cpus",
  "ripemd",
  "sha2",
