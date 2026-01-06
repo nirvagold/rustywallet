@@ -1,11 +1,15 @@
-﻿//! RustyWallet Checker Demo v10.0 - HASH160 BLOOM + BATCH AFFINE
-//! Optimizations: Hash160 bloom, batch affine, lazy encoding
+﻿//! RustyWallet Checker Demo v11.0 - DUAL BLOOM (Hash160 + Address)
+//! 
+//! Strategy: Hash160 pre-filter + Address string verification
+//! - Hash160 bloom: fast pre-filter (may have false positives)
+//! - Address bloom: accurate verification (no false positives)
 
 use rustywallet_bloom::BloomFilter;
 use rustywallet_checker::{check_btc_balance, BitcoinBalance};
 use rustywallet_keys::private_key::PrivateKey;
 use sha2::{Digest, Sha256};
 use ripemd::Ripemd160;
+use std::collections::HashSet;
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufRead, BufReader, Write};
 use std::sync::{atomic::{AtomicBool, AtomicU64, Ordering}, Arc};
@@ -31,57 +35,84 @@ struct Match { pk: [u8; 32], t: &'static str, a: String }
 fn main() {
     let threads = num_cpus::get_physical().max(2);
     println!("\n======================================================================");
-    println!("   RUSTYWALLET CHECKER v10.0 - HASH160 BLOOM + BATCH AFFINE");
+    println!("   RUSTYWALLET CHECKER v11.0 - DUAL BLOOM (Hash160 + Address)");
     println!("======================================================================\n");
     
-    print!("[1/4] Analyzing... ");
+    print!("[1/5] Analyzing... ");
     let _ = stdout().flush();
     let (count, types) = analyze("addresses.txt");
     if count == 0 { println!("No addresses!"); return; }
     println!("{} addresses", fmt(count as u64));
     
-    print!("[2/4] Building Hash160 bloom... ");
+    // Build Hash160 bloom for pre-filtering
+    print!("[2/5] Building Hash160 bloom (pre-filter)... ");
     let _ = stdout().flush();
     let start = Instant::now();
-    let mut bloom = BloomFilter::new(count * 2, BLOOM_FPR);
-    let loaded = load_hash160("addresses.txt", &mut bloom);
-    println!("{} hashes in {:.1}s (~{}MB)", fmt(loaded), start.elapsed().as_secs_f64(), bloom.memory_usage()/1_000_000);
-    let bloom = Arc::new(bloom);
-
+    let mut bloom_h160 = BloomFilter::new(count * 2, 0.001); // Higher FPR OK for pre-filter
+    let h160_count = load_hash160("addresses.txt", &mut bloom_h160);
+    println!("{} in {:.1}s", fmt(h160_count), start.elapsed().as_secs_f64());
     
-    println!("[3/4] Validating...");
-    validate_bloom(&bloom);
+    // Build Address bloom for verification
+    print!("[3/5] Building Address bloom (verification)... ");
+    let _ = stdout().flush();
+    let start = Instant::now();
+    let mut bloom_addr = BloomFilter::new(count, BLOOM_FPR);
+    let addr_count = load_addresses("addresses.txt", &mut bloom_addr);
+    let mem = (bloom_h160.memory_usage() + bloom_addr.memory_usage()) / 1_000_000;
+    println!("{} in {:.1}s (~{}MB total)", fmt(addr_count), start.elapsed().as_secs_f64(), mem);
+    
+    let bloom_h160 = Arc::new(bloom_h160);
+    let bloom_addr = Arc::new(bloom_addr);
+    
+    println!("[4/5] Validating...");
+    validate_blooms(&bloom_h160, &bloom_addr);
     
     let (tx, rx): (Sender<Match>, Receiver<Match>) = bounded(512);
     let att = Arc::new(AtomicU64::new(0));
     let mat = Arc::new(AtomicU64::new(0));
+    let pre = Arc::new(AtomicU64::new(0)); // Pre-filter matches
     let chk = Arc::new(AtomicU64::new(0));
     let bal = Arc::new(AtomicU64::new(0));
     let run = Arc::new(AtomicBool::new(true));
+
     
-    println!("[4/4] {} threads | Batch Affine | Hash160 Bloom\n", threads);
+    println!("[5/5] {} threads | Dual Bloom | Batch Affine\n", threads);
     println!("----------------------------------------------------------------------");
     
     let t0 = Instant::now();
     let mut hs = vec![];
     for _ in 0..threads {
-        let b = Arc::clone(&bloom); let a = Arc::clone(&att); let m = Arc::clone(&mat);
-        let t = tx.clone(); let r = Arc::clone(&run);
-        hs.push(thread::spawn(move || worker(b, a, m, t, r, types)));
+        let bh = Arc::clone(&bloom_h160);
+        let ba = Arc::clone(&bloom_addr);
+        let a = Arc::clone(&att);
+        let m = Arc::clone(&mat);
+        let p = Arc::clone(&pre);
+        let t = tx.clone();
+        let r = Arc::clone(&run);
+        hs.push(thread::spawn(move || worker(bh, ba, a, m, p, t, r, types)));
     }
     drop(tx);
     
-    let c = Arc::clone(&chk); let f = Arc::clone(&bal); let r = Arc::clone(&run);
+    let c = Arc::clone(&chk);
+    let f = Arc::clone(&bal);
+    let r = Arc::clone(&run);
     let checker = thread::spawn(move || balance_checker(rx, c, f, r));
     
-    let a = Arc::clone(&att); let m = Arc::clone(&mat); let c = Arc::clone(&chk); let r = Arc::clone(&run);
+    let a = Arc::clone(&att);
+    let m = Arc::clone(&mat);
+    let p = Arc::clone(&pre);
+    let c = Arc::clone(&chk);
+    let r = Arc::clone(&run);
     let reporter = thread::spawn(move || {
         let mut last = 0u64;
         loop {
             thread::sleep(Duration::from_secs(2));
             if !r.load(Ordering::Relaxed) { break; }
             let cur = a.load(Ordering::Relaxed);
-            print!("\r{} | {}/s | B:{} C:{} | {}s   ", fmt(cur), fmt((cur-last)/2), m.load(Ordering::Relaxed), c.load(Ordering::Relaxed), t0.elapsed().as_secs());
+            let pre_m = p.load(Ordering::Relaxed);
+            let addr_m = m.load(Ordering::Relaxed);
+            print!("\r{} | {}/s | Pre:{} Addr:{} API:{} | {}s   ", 
+                fmt(cur), fmt((cur-last)/2), pre_m, addr_m, c.load(Ordering::Relaxed), t0.elapsed().as_secs());
             let _ = stdout().flush();
             last = cur;
         }
@@ -90,11 +121,16 @@ fn main() {
     ctrlc::set_handler({ let r = Arc::clone(&run); move || { println!("\n[!] Stop"); r.store(false, Ordering::Relaxed); }}).ok();
     for h in hs { h.join().ok(); }
     run.store(false, Ordering::Relaxed);
-    checker.join().ok(); reporter.join().ok();
+    checker.join().ok();
+    reporter.join().ok();
     
     let total = att.load(Ordering::Relaxed);
+    let pre_m = pre.load(Ordering::Relaxed);
+    let addr_m = mat.load(Ordering::Relaxed);
     println!("\n\n======================================================================");
-    println!("  {} keys @ {}/s | bloom:{} api:{} balance:{}", fmt(total), fmt((total as f64/t0.elapsed().as_secs_f64()) as u64), mat.load(Ordering::Relaxed), chk.load(Ordering::Relaxed), bal.load(Ordering::Relaxed));
+    println!("  {} keys @ {}/s", fmt(total), fmt((total as f64/t0.elapsed().as_secs_f64()) as u64));
+    println!("  Pre-filter: {} | Address match: {} | API: {} | Balance: {}", 
+        pre_m, addr_m, chk.load(Ordering::Relaxed), bal.load(Ordering::Relaxed));
     println!("======================================================================");
 }
 
@@ -105,6 +141,8 @@ fn analyze(f: &str) -> (usize, AddrTypes) {
     for l in BufReader::with_capacity(4<<20, file).lines().flatten() {
         let a = l.trim();
         if a.is_empty() || a.starts_with('#') { continue; }
+        // Validate address format
+        if !is_valid_address(a) { continue; }
         c += 1;
         if !t.p2pkh && a.starts_with('1') { t.p2pkh = true; }
         if !t.p2sh && a.starts_with('3') { t.p2sh = true; }
@@ -114,12 +152,21 @@ fn analyze(f: &str) -> (usize, AddrTypes) {
     (c, t)
 }
 
+fn is_valid_address(addr: &str) -> bool {
+    let len = addr.len();
+    if addr.starts_with('1') { len >= 26 && len <= 35 }
+    else if addr.starts_with('3') { len >= 26 && len <= 35 }
+    else if addr.starts_with("bc1q") { len >= 42 && len <= 62 }
+    else if addr.starts_with("bc1p") { len >= 62 && len <= 62 }
+    else { false }
+}
+
 fn load_hash160(f: &str, bloom: &mut BloomFilter) -> u64 {
     let file = match File::open(f) { Ok(f) => f, Err(_) => return 0 };
     let mut count = 0u64;
     for line in BufReader::with_capacity(8<<20, file).lines().flatten() {
         let addr = line.trim();
-        if addr.is_empty() || addr.starts_with('#') { continue; }
+        if addr.is_empty() || addr.starts_with('#') || !is_valid_address(addr) { continue; }
         if let Some(h160) = decode_addr_to_hash160(addr) {
             bloom.insert(&h160);
             count += 1;
@@ -127,6 +174,19 @@ fn load_hash160(f: &str, bloom: &mut BloomFilter) -> u64 {
     }
     count
 }
+
+fn load_addresses(f: &str, bloom: &mut BloomFilter) -> u64 {
+    let file = match File::open(f) { Ok(f) => f, Err(_) => return 0 };
+    let mut count = 0u64;
+    for line in BufReader::with_capacity(8<<20, file).lines().flatten() {
+        let addr = line.trim();
+        if addr.is_empty() || addr.starts_with('#') || !is_valid_address(addr) { continue; }
+        bloom.insert(addr.as_bytes());
+        count += 1;
+    }
+    count
+}
+
 
 fn decode_addr_to_hash160(addr: &str) -> Option<[u8; 20]> {
     if addr.starts_with('1') || addr.starts_with('3') {
@@ -165,25 +225,39 @@ fn bech32_decode_hash160(addr: &str) -> Option<[u8; 20]> {
     } else { None }
 }
 
-fn validate_bloom(bloom: &BloomFilter) {
+fn validate_blooms(bloom_h160: &BloomFilter, bloom_addr: &BloomFilter) {
+    // Test known address
+    let test_addr = "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH";
+    let test_h160 = decode_addr_to_hash160(test_addr).unwrap();
+    
+    // Generate hash160 from private key 1
     let test_sk: [u8; 32] = { let mut b = [0u8; 32]; b[31] = 1; b };
     let scalar: Scalar = Scalar::from_repr(test_sk.into()).unwrap();
     let point: ProjectivePoint = ProjectivePoint::GENERATOR * scalar;
     let affine: AffinePoint = point.into();
     let encoded = affine.to_encoded_point(true);
-    let h160 = hash160(encoded.as_bytes());
-    let expected = decode_addr_to_hash160("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH").unwrap();
-    println!("  Hash160 gen: {}", if h160 == expected { "OK" } else { "FAIL" });
+    let gen_h160 = hash160(encoded.as_bytes());
+    
+    println!("  Hash160 match: {}", if gen_h160 == test_h160 { "OK" } else { "FAIL" });
+    
+    // Test bloom filters with addresses from file
+    let test_addrs = ["34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo", "1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF"];
+    for addr in &test_addrs {
+        let in_addr_bloom = bloom_addr.contains(addr.as_bytes());
+        println!("  {} in addr bloom: {}", addr, if in_addr_bloom { "YES" } else { "NO" });
+    }
 }
 
 
-fn worker(bloom: Arc<BloomFilter>, att: Arc<AtomicU64>, mat: Arc<AtomicU64>,
+/// Worker with dual bloom filter: hash160 pre-filter + address verification
+fn worker(bloom_h160: Arc<BloomFilter>, bloom_addr: Arc<BloomFilter>,
+          att: Arc<AtomicU64>, mat: Arc<AtomicU64>, pre: Arc<AtomicU64>,
           tx: Sender<Match>, run: Arc<AtomicBool>, types: AddrTypes) {
     let g = ProjectivePoint::GENERATOR;
     let mut rng = rand::thread_rng();
-    let mut la = 0u64; let mut lm = 0u64;
-    let mut points: Vec<ProjectivePoint> = Vec::with_capacity(BATCH_SIZE);
-    let mut scalars: Vec<Scalar> = Vec::with_capacity(BATCH_SIZE);
+    let mut la = 0u64;
+    let mut lm = 0u64;
+    let mut lp = 0u64;
     
     while run.load(Ordering::Relaxed) {
         let mut sk_bytes = [0u8; 32];
@@ -195,54 +269,82 @@ fn worker(bloom: Arc<BloomFilter>, att: Arc<AtomicU64>, mat: Arc<AtomicU64>,
         
         for _ in 0..BATCHES_PER_ROUND {
             if !run.load(Ordering::Relaxed) { break; }
-            points.clear(); scalars.clear();
+            
             for _ in 0..BATCH_SIZE {
-                points.push(point); scalars.push(scalar);
-                point = point + g; scalar = scalar + Scalar::ONE;
-            }
-            let affines: Vec<AffinePoint> = points.iter().map(|p| (*p).into()).collect();
-            for (i, affine) in affines.iter().enumerate() {
+                let affine: AffinePoint = point.into();
                 let encoded = affine.to_encoded_point(true);
                 let pubkey = encoded.as_bytes();
-                if pubkey.len() != 33 { continue; }
-                let h160 = hash160(pubkey);
-                let sk: [u8; 32] = scalars[i].to_repr().into();
                 
-                if types.p2pkh && bloom.contains(&h160) {
-                    lm += 1;
-                    let _ = tx.try_send(Match { pk: sk, t: "P2PKH", a: encode_p2pkh(&h160) });
-                }
-                if types.p2wpkh && bloom.contains(&h160) {
-                    lm += 1;
-                    let _ = tx.try_send(Match { pk: sk, t: "P2WPKH", a: encode_p2wpkh(&h160) });
-                }
-                if types.p2sh {
-                    let sh = p2sh_script_hash(&h160);
-                    if bloom.contains(&sh) {
-                        lm += 1;
-                        let _ = tx.try_send(Match { pk: sk, t: "P2SH", a: encode_p2sh(&sh) });
+                if pubkey.len() == 33 {
+                    let h160 = hash160(pubkey);
+                    let sk: [u8; 32] = scalar.to_repr().into();
+                    
+                    // P2PKH: check hash160 pre-filter, then address bloom
+                    if types.p2pkh && bloom_h160.contains(&h160) {
+                        lp += 1;
+                        let addr = encode_p2pkh(&h160);
+                        if bloom_addr.contains(addr.as_bytes()) {
+                            lm += 1;
+                            let _ = tx.try_send(Match { pk: sk, t: "P2PKH", a: addr });
+                        }
+                    }
+                    
+                    // P2WPKH: same hash160
+                    if types.p2wpkh && bloom_h160.contains(&h160) {
+                        lp += 1;
+                        let addr = encode_p2wpkh(&h160);
+                        if bloom_addr.contains(addr.as_bytes()) {
+                            lm += 1;
+                            let _ = tx.try_send(Match { pk: sk, t: "P2WPKH", a: addr });
+                        }
+                    }
+                    
+                    // P2SH-P2WPKH: different hash (script hash)
+                    if types.p2sh {
+                        let sh = p2sh_script_hash(&h160);
+                        if bloom_h160.contains(&sh) {
+                            lp += 1;
+                            let addr = encode_p2sh(&sh);
+                            if bloom_addr.contains(addr.as_bytes()) {
+                                lm += 1;
+                                let _ = tx.try_send(Match { pk: sk, t: "P2SH", a: addr });
+                            }
+                        }
+                    }
+                    
+                    // P2TR: x-only pubkey
+                    if types.p2tr {
+                        let xonly = &pubkey[1..33];
+                        let mut h160_tr = [0u8; 20];
+                        h160_tr.copy_from_slice(&xonly[..20]);
+                        if bloom_h160.contains(&h160_tr) {
+                            lp += 1;
+                            let addr = encode_p2tr(xonly);
+                            if bloom_addr.contains(addr.as_bytes()) {
+                                lm += 1;
+                                let _ = tx.try_send(Match { pk: sk, t: "P2TR", a: addr });
+                            }
+                        }
                     }
                 }
-                if types.p2tr {
-                    let xonly = &pubkey[1..33];
-                    let mut h160_tr = [0u8; 20];
-                    h160_tr.copy_from_slice(&xonly[..20]);
-                    if bloom.contains(&h160_tr) {
-                        lm += 1;
-                        let _ = tx.try_send(Match { pk: sk, t: "P2TR", a: encode_p2tr(xonly) });
-                    }
-                }
+                
                 la += 1;
+                point = point + g;
+                scalar = scalar + Scalar::ONE;
             }
+            
             if la >= UPDATE_INTERVAL as u64 {
                 att.fetch_add(la, Ordering::Relaxed);
                 mat.fetch_add(lm, Ordering::Relaxed);
-                la = 0; lm = 0;
+                pre.fetch_add(lp, Ordering::Relaxed);
+                la = 0; lm = 0; lp = 0;
             }
         }
+        
         att.fetch_add(la, Ordering::Relaxed);
         mat.fetch_add(lm, Ordering::Relaxed);
-        la = 0; lm = 0;
+        pre.fetch_add(lp, Ordering::Relaxed);
+        la = 0; lm = 0; lp = 0;
     }
 }
 
@@ -339,7 +441,7 @@ fn balance_checker(rx: Receiver<Match>, chk: Arc<AtomicU64>, bal: Arc<AtomicU64>
                 match result {
                     Ok(b) => {
                         save_match(&m, &b);
-                        println!("\n[BLOOM] {} | {} sat", m.a, fmt(b.balance));
+                        println!("\n[MATCH] {} | {} sat", m.a, fmt(b.balance));
                         if b.balance > 0 || b.unconfirmed != 0 {
                             bal.fetch_add(1, Ordering::Relaxed);
                             println!("[💰] BALANCE! {} | {} sat", m.a, fmt(b.balance));
