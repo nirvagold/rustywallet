@@ -1,0 +1,15 @@
+[package]
+name = "rustywallet-kangaroo-demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+k256 = { version = "0.13", features = ["arithmetic"] }
+sha2 = "0.10"
+hex = "0.4"
+bs58 = "0.5"
+num-bigint = "0.4"
+num-traits = "0.2"
+num_cpus = "1.16"
+ctrlc = "3.4"
+rand = "0.8"

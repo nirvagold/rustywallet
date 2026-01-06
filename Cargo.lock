@@ -2189,6 +2189,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustywallet-kangaroo-demo"
+version = "0.1.0"
+dependencies = [
+ "bs58",
+ "ctrlc",
+ "hex",
+ "k256",
+ "num-bigint",
+ "num-traits",
+ "num_cpus",
+ "rand 0.8.5",
+ "sha2",
+]
+
+[[package]]
 name = "rustywallet-keys"
 version = "0.1.3"
 dependencies = [
