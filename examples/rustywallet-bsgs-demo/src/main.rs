@@ -47,8 +47,15 @@ fn main() {
     println!("║   Supports puzzles up to #256 (BigUint)                          ║");
     println!("╚══════════════════════════════════════════════════════════════════╝\n");
 
-    // Check for custom public key input
     let args: Vec<String> = env::args().collect();
+    
+    // Check for --test flag
+    if args.len() >= 2 && args[1] == "--test" {
+        run_test();
+        return;
+    }
+    
+    // Check for custom public key input
     
     let (puzzle_num, target_pubkey_hex, target_addr): (u32, String, String) = if args.len() >= 3 {
         // Custom input: bsgs-demo <bit> <pubkey_hex> [address]
@@ -357,4 +364,75 @@ fn format_bignum(n: &BigUint) -> String {
         }
         r.chars().rev().collect()
     }
+}
+
+
+/// Run self-test with known private key
+fn run_test() {
+    println!("[TEST] Running BSGS self-test...\n");
+    
+    let g = ProjectivePoint::GENERATOR;
+    
+    // Test cases: (private_key, bit_range)
+    let test_cases: &[(u64, u32)] = &[
+        (200, 8),      // 200 is in range 128-255 (2^7 to 2^8-1)
+        (1000, 10),    // 1000 is in range 512-1023 (2^9 to 2^10-1)
+        (50000, 16),   // 50000 is in range 32768-65535 (2^15 to 2^16-1)
+        (123456, 17),  // 123456 is in range 65536-131071 (2^16 to 2^17-1)
+    ];
+    
+    let mut passed = 0;
+    let mut failed = 0;
+    
+    for (sk, bits) in test_cases {
+        print!("[TEST] Private key {} (puzzle #{}): ", sk, bits);
+        let _ = stdout().flush();
+        
+        // Generate public key
+        let mut bytes = [0u8; 32];
+        bytes[24..32].copy_from_slice(&sk.to_be_bytes());
+        let scalar = Scalar::from_repr(bytes.into()).unwrap();
+        let target_point = g * scalar;
+        
+        // Calculate range
+        let one = BigUint::one();
+        let range_start = &one << (*bits - 1) as usize;
+        let range_end = (&one << *bits as usize) - &one;
+        
+        // Run BSGS
+        let m = 256u64; // Small table for test
+        let baby_table = build_baby_table(m);
+        let found = Arc::new(AtomicBool::new(false));
+        
+        let t0 = Instant::now();
+        let result = bsgs_solve(&range_start, &range_end, &target_point, &baby_table, m, &found);
+        let elapsed = t0.elapsed().as_secs_f64();
+        
+        match result {
+            Some(found_key) => {
+                let found_u64 = found_key.to_u64().unwrap_or(0);
+                if found_u64 == *sk {
+                    println!("✅ PASS (found {} in {:.3}s)", found_u64, elapsed);
+                    passed += 1;
+                } else {
+                    println!("❌ FAIL (expected {}, got {})", sk, found_u64);
+                    failed += 1;
+                }
+            }
+            None => {
+                println!("❌ FAIL (not found)");
+                failed += 1;
+            }
+        }
+    }
+    
+    println!();
+    println!("======================================================================");
+    println!("  Test Results: {} passed, {} failed", passed, failed);
+    if failed == 0 {
+        println!("  ✅ All tests passed! BSGS is working correctly.");
+    } else {
+        println!("  ❌ Some tests failed. Check implementation.");
+    }
+    println!("======================================================================");
 }
