@@ -12,12 +12,12 @@ use k256::elliptic_curve::group::GroupEncoding;
 use std::collections::HashMap;
 use std::env;
 use std::io::{self, stdout, Write};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
 use sha2::{Digest, Sha256};
 use num_bigint::BigUint;
-use num_traits::{One, Zero, ToPrimitive};
+use num_traits::{One, ToPrimitive};
 
 // Puzzles WITH known public keys (compressed hex)
 // Updated with correct public keys
@@ -240,7 +240,7 @@ fn build_baby_table(m: u64) -> HashMap<[u8; 33], u64> {
     table
 }
 
-/// BSGS algorithm to find private key using BigUint
+/// BSGS algorithm to find private key - OPTIMIZED with multi-threading
 fn bsgs_solve(
     start: &BigUint,
     end: &BigUint,
@@ -249,24 +249,88 @@ fn bsgs_solve(
     m: u64,
     found: &Arc<AtomicBool>,
 ) -> Option<BigUint> {
-    let g = ProjectivePoint::GENERATOR;
-    
-    // Compute -m*G for giant steps
-    let m_scalar = u64_to_scalar(m);
-    let neg_m_g = -(g * m_scalar);
-    
-    // Start: Q - start*G
-    let start_scalar = biguint_to_scalar(start);
-    let mut gamma = *target - (g * start_scalar);
+    use std::thread;
+    use std::sync::mpsc;
     
     let range_size = end - start;
     let m_big = BigUint::from(m);
-    let num_giants = &range_size / &m_big + 1u32;
+    let num_giants = (&range_size / &m_big + 1u32).to_u64().unwrap_or(u64::MAX);
     
-    let mut j = BigUint::zero();
-    let mut iter_count = 0u64;
+    let num_threads = num_cpus::get_physical().max(1).min(8);
+    let chunk_size = num_giants / num_threads as u64;
     
-    while &j < &num_giants {
+    if chunk_size == 0 {
+        // Small range, single thread
+        return bsgs_solve_single(start, end, target, baby_table, m, found, 0, num_giants);
+    }
+    
+    println!("  Using {} threads for giant steps", num_threads);
+    
+    let (tx, rx) = mpsc::channel();
+    let baby_table = Arc::new(baby_table.clone());
+    let start = Arc::new(start.clone());
+    let end = Arc::new(end.clone());
+    let target = Arc::new(*target);
+    let counter = Arc::new(AtomicU64::new(0));
+    
+    for tid in 0..num_threads {
+        let tx = tx.clone();
+        let found = Arc::clone(found);
+        let baby_table = Arc::clone(&baby_table);
+        let start = Arc::clone(&start);
+        let end = Arc::clone(&end);
+        let target = Arc::clone(&target);
+        let counter = Arc::clone(&counter);
+        
+        let thread_start = tid as u64 * chunk_size;
+        let thread_end = if tid == num_threads - 1 { num_giants } else { (tid as u64 + 1) * chunk_size };
+        
+        thread::spawn(move || {
+            let result = bsgs_worker(
+                &start, &end, &target, &baby_table, m, 
+                &found, thread_start, thread_end, &counter, num_giants
+            );
+            tx.send(result).ok();
+        });
+    }
+    
+    drop(tx);
+    
+    // Wait for results
+    for result in rx {
+        if let Some(key) = result {
+            found.store(true, Ordering::Relaxed);
+            return Some(key);
+        }
+    }
+    
+    None
+}
+
+fn bsgs_worker(
+    start: &BigUint,
+    _end: &BigUint,
+    target: &ProjectivePoint,
+    baby_table: &HashMap<[u8; 33], u64>,
+    m: u64,
+    found: &Arc<AtomicBool>,
+    giant_start: u64,
+    giant_end: u64,
+    counter: &Arc<AtomicU64>,
+    total_giants: u64,
+) -> Option<BigUint> {
+    let g = ProjectivePoint::GENERATOR;
+    
+    // Compute starting point: Q - (start + giant_start*m)*G
+    let m_scalar = u64_to_scalar(m);
+    let neg_m_g = -(g * m_scalar);
+    
+    let offset = BigUint::from(giant_start) * m;
+    let start_key = start + &offset;
+    let start_scalar = biguint_to_scalar(&start_key);
+    let mut gamma = *target - (g * start_scalar);
+    
+    for j in giant_start..giant_end {
         if found.load(Ordering::Relaxed) { return None; }
         
         // Check if gamma is in baby table
@@ -276,22 +340,64 @@ fn bsgs_solve(
         
         if let Some(&i) = baby_table.get(&key) {
             // Found! k = start + j*m + i
-            let k = start + &j * m + i;
+            let k = start + BigUint::from(j) * m + i;
+            return Some(k);
+        }
+        
+        // Giant step
+        gamma = gamma + neg_m_g;
+        
+        // Update progress
+        let count = counter.fetch_add(1, Ordering::Relaxed);
+        if count % 500_000 == 0 {
+            let progress = (count as f64 / total_giants as f64) * 100.0;
+            print!("\r  Giant steps: {} / {} ({:.4}%)   ", 
+                format_num(count), format_num(total_giants), progress);
+            let _ = stdout().flush();
+        }
+    }
+    
+    None
+}
+
+fn bsgs_solve_single(
+    start: &BigUint,
+    end: &BigUint,
+    target: &ProjectivePoint,
+    baby_table: &HashMap<[u8; 33], u64>,
+    m: u64,
+    found: &Arc<AtomicBool>,
+    giant_start: u64,
+    giant_end: u64,
+) -> Option<BigUint> {
+    let g = ProjectivePoint::GENERATOR;
+    
+    let m_scalar = u64_to_scalar(m);
+    let neg_m_g = -(g * m_scalar);
+    
+    let offset = BigUint::from(giant_start) * m;
+    let start_key = start + &offset;
+    let start_scalar = biguint_to_scalar(&start_key);
+    let mut gamma = *target - (g * start_scalar);
+    
+    for j in giant_start..giant_end {
+        if found.load(Ordering::Relaxed) { return None; }
+        
+        let gamma_bytes = gamma.to_bytes();
+        let mut key = [0u8; 33];
+        key.copy_from_slice(&gamma_bytes);
+        
+        if let Some(&i) = baby_table.get(&key) {
+            let k = start + BigUint::from(j) * m + i;
             if &k <= end {
                 return Some(k);
             }
         }
         
-        // Giant step: gamma = gamma - m*G
         gamma = gamma + neg_m_g;
-        j += 1u32;
-        iter_count += 1;
         
-        if iter_count % 100_000 == 0 {
-            let progress = if num_giants > BigUint::zero() {
-                (&j * 100u32 / &num_giants).to_u64().unwrap_or(0)
-            } else { 0 };
-            print!("\r  Giant step: {} ({:.2}%)", format_bignum(&j), progress);
+        if j % 100_000 == 0 {
+            print!("\r  Giant step: {} / {}", format_num(j), format_num(giant_end));
             let _ = stdout().flush();
         }
     }
@@ -377,8 +483,6 @@ fn format_bignum(n: &BigUint) -> String {
 fn run_test() {
     println!("[TEST] Running BSGS self-test...\n");
     
-    let g = ProjectivePoint::GENERATOR;
-    
     // Test cases: (private_key, bit_range)
     let test_cases: &[(u64, u32)] = &[
         (200, 8),      // 200 is in range 128-255 (2^7 to 2^8-1)
@@ -395,6 +499,7 @@ fn run_test() {
         let _ = stdout().flush();
         
         // Generate public key
+        let g = ProjectivePoint::GENERATOR;
         let mut bytes = [0u8; 32];
         bytes[24..32].copy_from_slice(&sk.to_be_bytes());
         let scalar = Scalar::from_repr(bytes.into()).unwrap();
